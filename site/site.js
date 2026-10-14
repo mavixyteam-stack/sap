@@ -16,7 +16,7 @@
     if (!L || L.dataset.run) return; L.dataset.run = '1';
     window.__sapHold = true;
     var done = function () { L.style.display = 'none'; L.style.pointerEvents = 'none'; L.innerHTML = ''; };
-    var safety = setTimeout(function () { if (L.style.display !== 'none') { done(); release(); } }, 9000);
+    var safety = setTimeout(function () { if (L.style.display !== 'none') { done(); release(); } }, 5000);
     if (!L.animate) { done(); release(); return; }
     try { history.scrollRestoration = 'manual'; } catch (e) {}
     window.scrollTo(0, 0);
@@ -56,8 +56,9 @@
       window.scrollTo(0, 0);
       var hdr = document.querySelector('[data-hdr]'), logo = hdr && hdr.querySelector('img'), nav = hdr && hdr.querySelector('nav');
       if (!logo) { A(L, [{ opacity: 1 }, { opacity: 0 }], { duration: 500 }).onfinish = function () { done(); release(); }; return; }
-      logo.style.opacity = '0'; if (nav) nav.style.opacity = '0';
       var s = box.getBoundingClientRect(), t = logo.getBoundingClientRect(), sc = t.width / s.width;
+      if (!isFinite(sc) || sc <= 0 || !s.width || !t.width) { A(L, [{ opacity: 1 }, { opacity: 0 }], { duration: 350 }).onfinish = function () { done(); release(); clearTimeout(safety); }; return; }
+      logo.style.opacity = '0'; if (nav) nav.style.opacity = '0';
       A(foot, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px)' }], { duration: 450 });
       A(bar, [{ transform: 'scaleX(1)' }, { transform: 'scaleX(1)', opacity: 0 }], { duration: 400 });
       box.style.transformOrigin = '0 0';

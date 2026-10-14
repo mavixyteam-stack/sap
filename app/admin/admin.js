@@ -1,0 +1,590 @@
+/* SAP Hardware admin. Vanilla JS, no build step. All text is inserted via textContent (no innerHTML). */
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  var state = { user: null, view: 'dashboard', cache: {} };
+
+  /* ---------- helpers ---------- */
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === false || v == null) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'style') el.style.cssText = v;
+      else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+      else if (k === 'value') el.value = v;
+      else if (k === 'checked' || k === 'disabled' || k === 'selected') el[k] = !!v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    for (var i = 2; i < arguments.length; i++) add(el, arguments[i]);
+    return el;
+  }
+  function add(el, c) {
+    if (c == null || c === false) return;
+    if (Array.isArray(c)) c.forEach(function (x) { add(el, x); });
+    else el.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+  var toastT;
+  function toast(msg, bad) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'on' + (bad ? ' bad' : '');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.className = ''; }, 3200);
+  }
+  function api(path, method, body) {
+    var opt = { method: method || 'GET', headers: { 'X-Requested-With': 'sap-admin' }, credentials: 'same-origin' };
+    if (body !== undefined) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch('/admin/api' + path, opt).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.status === 401 && path !== '/login') { state.user = null; render(); throw new Error('Please sign in'); }
+        if (!r.ok) throw new Error(typeof j.detail === 'string' ? j.detail : (j.detail && j.detail[0] && j.detail[0].msg) || 'Something went wrong');
+        return j;
+      });
+    });
+  }
+  function fail(e) { toast(e.message || 'Something went wrong', true); }
+  function img(src) { return src ? '/' + src.replace(/^\//, '') : ''; }
+  function toggle(label, checked, onchange) {
+    var i = h('input', { type: 'checkbox', checked: checked });
+    if (onchange) i.addEventListener('change', function () { onchange(i.checked); });
+    var l = h('label', { class: 'toggle' }, i, label);
+    l.input = i; return l;
+  }
+  function field(label, input, hint) { return h('label', { class: 'f' }, label, input, hint ? h('span', { class: 'hint' }, hint) : null); }
+  function confirmBox(msg) { return window.confirm(msg); }
+
+  /* ---------- drawer ---------- */
+  function drawer(title, body, onSave, saveLabel) {
+    var scrim = h('div', { class: 'scrim' });
+    var save = h('button', { class: 'btn green' }, saveLabel || 'Save');
+    var close = function () { scrim.remove(); box.remove(); document.removeEventListener('keydown', esc); };
+    var esc = function (e) { if (e.key === 'Escape') close(); };
+    var box = h('aside', { class: 'drawer', role: 'dialog', 'aria-label': title },
+      h('header', null, h('h2', null, title), h('button', { class: 'btn ghost icon', onclick: close, 'aria-label': 'Close' }, '✕')),
+      h('div', { class: 'body' }, body),
+      h('footer', null, h('button', { class: 'btn ghost', onclick: close }, 'Cancel'), save));
+    save.addEventListener('click', function () {
+      save.disabled = true;
+      Promise.resolve(onSave()).then(function () { close(); }, function (e) { save.disabled = false; fail(e); });
+    });
+    scrim.addEventListener('click', close);
+    document.addEventListener('keydown', esc);
+    document.body.appendChild(scrim); document.body.appendChild(box);
+    var first = box.querySelector('input[type=text],textarea'); if (first) first.focus();
+  }
+
+  /* ---------- image picker ---------- */
+  function uploadFile(file) {
+    var fd = new FormData(); fd.append('file', file);
+    return fetch('/admin/api/upload', { method: 'POST', body: fd, headers: { 'X-Requested-With': 'sap-admin' }, credentials: 'same-origin' })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.detail || 'Upload failed'); return j.path; }); });
+  }
+  function imagePicker(initial, label, hint) {
+    var val = initial || '';
+    var pv = h('div', { class: 'pv' });
+    var paint = function () { pv.style.backgroundImage = val ? 'url("' + img(val) + '")' : ''; pv.textContent = val ? '' : 'No image'; };
+    var file = h('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    var btn = h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { file.click(); } }, 'Upload image');
+    var rm = h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { val = ''; paint(); } }, 'Remove');
+    file.addEventListener('change', function () {
+      if (!file.files[0]) return;
+      btn.disabled = true; btn.textContent = 'Uploading…';
+      uploadFile(file.files[0]).then(function (p) { val = p; paint(); }, fail).then(function () { btn.disabled = false; btn.textContent = 'Upload image'; file.value = ''; });
+    });
+    paint();
+    var el = field(label, h('div', { class: 'img' }, pv, h('div', { class: 'stack', style: 'gap:8px' }, h('div', { class: 'row' }, btn, rm), file)), hint);
+    el.get = function () { return val; };
+    return el;
+  }
+  function galleryPicker(initial) {
+    var vals = (initial || []).slice();
+    var wrap = h('div', { class: 'gal' });
+    var file = h('input', { type: 'file', accept: 'image/*', multiple: true, style: 'display:none' });
+    var addBtn = h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { file.click(); } }, '+ Add images');
+    var paint = function () {
+      clear(wrap);
+      vals.forEach(function (v, i) {
+        var g = h('div', { class: 'g', style: 'background-image:url("' + img(v) + '")' },
+          h('button', { type: 'button', 'aria-label': 'Remove', onclick: function () { vals.splice(i, 1); paint(); } }, '×'));
+        wrap.appendChild(g);
+      });
+    };
+    file.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(file.files); if (!files.length) return;
+      addBtn.disabled = true; addBtn.textContent = 'Uploading…';
+      files.reduce(function (p, f) { return p.then(function () { return uploadFile(f).then(function (path) { vals.push(path); paint(); }); }); }, Promise.resolve())
+        .catch(fail).then(function () { addBtn.disabled = false; addBtn.textContent = '+ Add images'; file.value = ''; });
+    });
+    paint();
+    var el = field('More photos (optional)', h('div', { class: 'stack', style: 'gap:10px' }, wrap, h('div', null, addBtn, file)),
+      'Shown as extra thumbnails on the product page. Leave empty to use the standard layout.');
+    el.get = function () { return vals.slice(); };
+    return el;
+  }
+
+  /* ---------- shell ---------- */
+  var NAV = [['dashboard', 'Overview'], ['categories', 'Categories'], ['products', 'Products'], ['home', 'Home page'],
+    ['enquiries', 'Enquiries'], ['contact', 'Contact details'], ['settings', 'Settings']];
+
+  function render() {
+    clear(app);
+    if (!state.user) return renderLogin();
+    var main = h('main', { class: 'main' });
+    var side = h('nav', { class: 'side' },
+      h('img', { src: '/assets/sap-logo.svg', alt: 'SAP Hardware' }),
+      NAV.map(function (n) {
+        var a = h('a', { class: 'nav' + (state.view === n[0] ? ' on' : ''), href: '#' + n[0], onclick: function (e) { e.preventDefault(); go(n[0]); } }, n[1]);
+        if (n[0] === 'enquiries' && state.newEnq) a.appendChild(h('span', { class: 'count' }, String(state.newEnq)));
+        return a;
+      }),
+      h('div', { class: 'foot' }, state.user.email,
+        h('a', { href: '/', target: '_blank', rel: 'noopener' }, 'View website ↗'),
+        h('a', { href: '#', onclick: function (e) { e.preventDefault(); api('/logout', 'POST').then(function () { state.user = null; render(); }); } }, 'Sign out')));
+    app.appendChild(h('div', { class: 'shell' }, side, main));
+    state.main = main;
+    var v = views[state.view] || views.dashboard;
+    v(main);
+  }
+  function go(view) { state.view = view; location.hash = view; render(); window.scrollTo(0, 0); }
+  function refreshBadge() {
+    api('/summary').then(function (s) {
+      state.newEnq = s.enquiries_new;
+      var a = Array.prototype.find.call(document.querySelectorAll('.side a.nav'), function (x) { return x.textContent.indexOf('Enquiries') === 0; });
+      if (!a) return;
+      var c = a.querySelector('.count'); if (c) c.remove();
+      if (s.enquiries_new) a.appendChild(h('span', { class: 'count' }, String(s.enquiries_new)));
+    }).catch(function () {});
+  }
+  function header(title, sub, actions) {
+    return h('div', { class: 'head' }, h('div', null, h('h1', null, title), sub ? h('p', null, sub) : null), h('div', { class: 'row' }, actions));
+  }
+
+  function renderLogin() {
+    var email = h('input', { type: 'email', required: true, autocomplete: 'username', placeholder: 'you@company.com' });
+    var pw = h('input', { type: 'password', required: true, autocomplete: 'current-password' });
+    var err = h('div', { class: 'small', style: 'color:var(--red);min-height:18px' });
+    var form = h('form', { onsubmit: function (e) {
+      e.preventDefault(); err.textContent = '';
+      api('/login', 'POST', { email: email.value, password: pw.value }).then(function (u) { state.user = u; render(); refreshBadge(); },
+        function (er) { err.textContent = er.message; });
+    } },
+      h('img', { src: '/assets/sap-logo.svg', alt: 'SAP Hardware' }),
+      h('div', null, h('h1', null, 'Admin sign in'), h('p', { class: 'muted', style: 'margin:8px 0 0' }, 'Manage categories, products and the home page.')),
+      field('Email', email), field('Password', pw), err, h('button', { class: 'btn green', type: 'submit', style: 'align-self:flex-start' }, 'Sign in'));
+    app.appendChild(h('div', { class: 'login' }, form));
+    email.focus();
+  }
+
+  /* ---------- data loaders ---------- */
+  function load() {
+    return Promise.all([api('/collections'), api('/catalogues'), api('/finishes'), api('/products')]).then(function (r) {
+      state.cols = r[0]; state.cats = r[1]; state.fins = r[2]; state.prods = r[3];
+    });
+  }
+  function reload(fn) { return load().then(function () { if (fn) fn(); }).catch(fail); }
+  function colName(id) { var c = (state.cols || []).find(function (x) { return x.id === id; }); return c ? c.name : id; }
+
+  var views = {};
+
+  /* ---------- dashboard ---------- */
+  views.dashboard = function (main) {
+    main.appendChild(header('Overview', 'Everything the client needs to keep the website up to date.'));
+    var box = h('div'); main.appendChild(box);
+    api('/summary').then(function (s) {
+      state.newEnq = s.enquiries_new;
+      box.appendChild(h('div', { class: 'cards' },
+        stat(s.products_live, 'Products live', s.products + ' in total'),
+        stat(s.collections_live, 'Categories live', s.collections + ' in total'),
+        stat(s.enquiries_new, 'New enquiries', s.enquiries_total + ' received')));
+      var tip = function (t, d, v) { return h('div', { class: 'card' }, h('h2', null, t), h('p', { class: 'muted small', style: 'margin:8px 0 14px' }, d), h('a', { class: 'btn ghost sm', href: '#' + v, onclick: function (e) { e.preventDefault(); go(v); } }, 'Open')); };
+      box.appendChild(h('div', { class: 'cards' },
+        tip('Add or edit a product', 'Name, photos, finishes, category and catalogue pages.', 'products'),
+        tip('Change the home page', 'Hero slides and the products featured on the home page.', 'home'),
+        tip('Reorder categories', 'Control which categories show and in what order.', 'categories')));
+      refreshBadge();
+    }).catch(fail);
+    function stat(n, label, sub) { return h('div', { class: 'card stat' }, h('b', null, String(n)), h('div', null, label), h('span', null, sub)); }
+  };
+
+  /* ---------- categories ---------- */
+  views.categories = function (main) {
+    var list = h('div', { class: 'list' });
+    main.appendChild(header('Categories', 'These appear as “Collections” on the website, in this order.',
+      h('button', { class: 'btn green', onclick: function () { editCategory(); } }, '+ New category')));
+    main.appendChild(list);
+    function paint() {
+      clear(list);
+      if (!state.cols.length) list.appendChild(h('div', { class: 'empty' }, 'No categories yet.'));
+      state.cols.forEach(function (c, i) {
+        var move = function (d) {
+          var ids = state.cols.map(function (x) { return x.id; }); var j = i + d; if (j < 0 || j >= ids.length) return;
+          var t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+          api('/collections/reorder', 'POST', { ids: ids }).then(function () { return reload(paint); }).catch(fail);
+        };
+        list.appendChild(h('div', { class: 'item' + (c.active ? '' : ' off') },
+          h('div', { class: 'thumb', style: 'background:var(--line) center/cover' + (c.scene ? ';background-image:url("' + img(c.scene) + '")' : '') }),
+          h('div', { style: 'min-width:0' },
+            h('div', { class: 't' }, c.name, c.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
+            h('div', { class: 's' }, c.product_count + ' product' + (c.product_count === 1 ? '' : 's') + (c.blurb ? ' · ' + c.blurb : ''))),
+          h('div', { class: 'acts' },
+            h('button', { class: 'btn ghost sm icon', title: 'Move up', disabled: i === 0, onclick: function () { move(-1); } }, '↑'),
+            h('button', { class: 'btn ghost sm icon', title: 'Move down', disabled: i === state.cols.length - 1, onclick: function () { move(1); } }, '↓'),
+            h('button', { class: 'btn ghost sm', onclick: function () { editCategory(c); } }, 'Edit'),
+            h('button', { class: 'btn danger sm', onclick: function () {
+              if (!confirmBox('Delete the category “' + c.name + '”?')) return;
+              api('/collections/' + encodeURIComponent(c.id), 'DELETE').then(function () { toast('Category deleted'); return reload(paint); }).catch(fail);
+            } }, 'Delete'))));
+      });
+    }
+    function editCategory(c) {
+      var isNew = !c; c = c || { name: '', blurb: '', q: '', mats: [], scene: '', active: true };
+      var name = h('input', { type: 'text', value: c.name, maxlength: 80 });
+      var blurb = h('textarea', { maxlength: 300 }, c.blurb);
+      var q = h('input', { type: 'text', value: c.q, maxlength: 200, placeholder: 'e.g. polished stainless steel glass fitting' });
+      var mats = h('input', { type: 'text', value: (c.mats || []).join(', '), placeholder: 'Aluminium, Steel' });
+      var pic = imagePicker(c.scene, 'Category image', 'Shown when hovering the category on the home page. Wide photos (3:2) work best.');
+      var vis = toggle('Visible on the website', c.active);
+      drawer(isNew ? 'New category' : 'Edit category', [
+        field('Name', name), field('Short description', blurb, 'One sentence shown under the category name.'),
+        field('Search descriptor (optional)', q, 'Used behind the scenes for search descriptions.'),
+        field('Typical materials', mats, 'Comma separated. Used as the default for new products.'), pic, vis
+      ], function () {
+        var body = { name: name.value, blurb: blurb.value, q: q.value, scene: pic.get(), active: vis.input.checked,
+          mats: mats.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) };
+        return api('/collections' + (isNew ? '' : '/' + encodeURIComponent(c.id)), isNew ? 'POST' : 'PUT', body)
+          .then(function () { toast('Saved'); return reload(paint); });
+      });
+    }
+    load().then(paint).catch(fail);
+  };
+
+  /* ---------- products ---------- */
+  views.products = function (main) {
+    var f = state.pf = state.pf || { q: '', col: '', show: '' };
+    var list = h('div', { class: 'list' });
+    var q = h('input', { type: 'search', placeholder: 'Search products…', value: f.q, oninput: function () { f.q = q.value; paint(); } });
+    var colSel = h('select', { onchange: function () { f.col = colSel.value; paint(); } });
+    var showSel = h('select', { onchange: function () { f.show = showSel.value; paint(); } },
+      [['', 'All'], ['live', 'Visible'], ['hidden', 'Hidden'], ['new', 'Marked New'], ['featured', 'On home page']].map(function (o) { return h('option', { value: o[0], selected: f.show === o[0] }, o[1]); }));
+    main.appendChild(header('Products', 'Add, edit, hide or reorder the products shown on the website.',
+      h('button', { class: 'btn green', onclick: function () { editProduct(); } }, '+ New product')));
+    main.appendChild(h('div', { class: 'bar' }, q, colSel, showSel));
+    main.appendChild(list);
+
+    function fillCols() {
+      clear(colSel); colSel.appendChild(h('option', { value: '' }, 'All categories'));
+      state.cols.forEach(function (c) { colSel.appendChild(h('option', { value: c.id, selected: f.col === c.id }, c.name)); });
+    }
+    function paint() {
+      clear(list);
+      var qq = f.q.trim().toLowerCase();
+      var rows = state.prods.filter(function (p) {
+        if (f.col && p.collection_id !== f.col) return false;
+        if (f.show === 'live' && !p.active) return false;
+        if (f.show === 'hidden' && p.active) return false;
+        if (f.show === 'new' && !p.is_new) return false;
+        if (f.show === 'featured' && !p.featured) return false;
+        return !qq || (p.name + ' ' + p.code + ' ' + p.collection_name).toLowerCase().indexOf(qq) >= 0;
+      });
+      if (!rows.length) list.appendChild(h('div', { class: 'empty' }, 'No products match.'));
+      var canMove = !!f.col && !qq && !f.show;
+      rows.forEach(function (p) {
+        var move = function (d) { api('/products/' + encodeURIComponent(p.id) + '/move', 'POST', { dir: d }).then(function () { return reload(paint); }).catch(fail); };
+        list.appendChild(h('div', { class: 'item' + (p.active ? '' : ' off') },
+          h('img', { class: 'thumb', src: img(p.image) || '/assets/placeholder.svg', alt: '', loading: 'lazy' }),
+          h('div', { style: 'min-width:0' },
+            h('div', { class: 't' }, p.name, p.is_new ? h('span', { class: 'pill g' }, 'New') : null,
+              p.featured ? h('span', { class: 'pill' }, 'Home') : null, p.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
+            h('div', { class: 's' }, p.code + ' · ' + p.collection_name + (p.pages ? ' · pp. ' + p.pages : ''))),
+          h('div', { class: 'acts' },
+            canMove ? [h('button', { class: 'btn ghost sm icon', title: 'Move up', onclick: function () { move(-1); } }, '↑'),
+              h('button', { class: 'btn ghost sm icon', title: 'Move down', onclick: function () { move(1); } }, '↓')] : null,
+            h('button', { class: 'btn ghost sm', onclick: function () { editProduct(p); } }, 'Edit'),
+            h('button', { class: 'btn danger sm', onclick: function () {
+              if (!confirmBox('Delete “' + p.name + '”? This cannot be undone. (Tip: switch it to Hidden to keep it.)')) return;
+              api('/products/' + encodeURIComponent(p.id), 'DELETE').then(function () { toast('Product deleted'); return reload(paint); }).catch(fail);
+            } }, 'Delete'))));
+      });
+    }
+
+    function editProduct(p) {
+      var isNew = !p;
+      p = p || { name: '', collection_id: f.col || (state.cols[0] && state.cols[0].id) || '', catalogue_key: state.cats[0] && state.cats[0].key, code: '',
+        pages: '', material: '', finishes: [], description: '', image: '', gallery: [], is_new: false, active: true, featured: false, subs: null };
+      var name = h('input', { type: 'text', value: p.name, maxlength: 140 });
+      var col = h('select', null, state.cols.map(function (c) { return h('option', { value: c.id, selected: c.id === p.collection_id }, c.name + (c.active ? '' : ' (hidden)')); }));
+      var cat = h('select', null, state.cats.map(function (c) { return h('option', { value: c.key, selected: c.key === p.catalogue_key }, c.name); }));
+      var code = h('input', { type: 'text', value: p.code, maxlength: 20, placeholder: isNew ? 'Automatic' : '' });
+      var pages = h('input', { type: 'text', value: p.pages, maxlength: 40, placeholder: 'e.g. 07–22' });
+      var matList = h('datalist', { id: 'matlist' });
+      var allMats = {}; state.cols.forEach(function (c) { (c.mats || []).forEach(function (m) { allMats[m] = 1; }); });
+      state.prods.forEach(function (x) { if (x.material) allMats[x.material] = 1; });
+      Object.keys(allMats).forEach(function (m) { matList.appendChild(h('option', { value: m })); });
+      var mat = h('input', { type: 'text', value: p.material, list: 'matlist', maxlength: 60 });
+      var chosen = {}; (p.finishes || []).forEach(function (n) { chosen[n] = 1; });
+      var sw = h('div', { class: 'sw' }, state.fins.map(function (fi) {
+        var b = h('button', { type: 'button', class: chosen[fi.name] ? 'on' : '', onclick: function () {
+          chosen[fi.name] = !chosen[fi.name]; b.className = chosen[fi.name] ? 'on' : '';
+        } }, h('i', { style: 'background:' + fi.color }), fi.name);
+        return b;
+      }));
+      var desc = h('textarea', { maxlength: 1500, placeholder: 'Leave empty to use the category description.' }, p.description);
+      var pic = imagePicker(p.image, 'Main photo', 'Portrait (4:5) photos match the website grid best. Large phone photos are resized automatically.');
+      var gal = galleryPicker(p.gallery);
+      var subs = (p.subs || []).map(function (s) { return [s[0], s[1]]; });
+      var subsBox = h('div', { class: 'stack', style: 'gap:8px' });
+      var paintSubs = function () {
+        clear(subsBox);
+        subs.forEach(function (s, i) {
+          subsBox.appendChild(h('div', { class: 'vrow' },
+            h('input', { type: 'text', value: s[0], placeholder: 'Variant name', oninput: function (e) { s[0] = e.target.value; } }),
+            h('input', { type: 'text', value: s[1], placeholder: 'Page', oninput: function (e) { s[1] = e.target.value; } }),
+            h('button', { class: 'btn ghost sm icon', type: 'button', onclick: function () { subs.splice(i, 1); paintSubs(); } }, '×')));
+        });
+        subsBox.appendChild(h('div', null, h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { subs.push(['', '']); paintSubs(); } }, '+ Add variant')));
+      };
+      paintSubs();
+      var isNewTog = toggle('Show a “New” badge', p.is_new);
+      var feat = toggle('Feature on the home page', p.featured);
+      var vis = toggle('Visible on the website', p.active);
+      col.addEventListener('change', function () {
+        var c = state.cols.find(function (x) { return x.id === col.value; });
+        if (c && !mat.value && c.mats && c.mats.length) mat.value = c.mats[0];
+      });
+      drawer(isNew ? 'New product' : 'Edit product', [
+        field('Product name', name),
+        h('div', { class: 'grid2' }, field('Category', col), field('Catalogue', cat)),
+        h('div', { class: 'grid2' }, field('Series code', code, isNew ? 'Generated from the catalogue if left empty.' : null), field('Catalogue pages', pages)),
+        field('Material', mat), matList,
+        field('Finishes', sw),
+        field('Description', desc),
+        pic, gal,
+        field('Variants (optional)', subsBox, 'Sub-products with their catalogue page, e.g. “Synchro Sliding — 18”.'),
+        h('div', { class: 'stack', style: 'gap:12px' }, isNewTog, feat, vis)
+      ], function () {
+        var body = { name: name.value, collection_id: col.value, catalogue_key: cat.value, code: code.value, pages: pages.value,
+          material: mat.value, finishes: state.fins.map(function (x) { return x.name; }).filter(function (n) { return chosen[n]; }),
+          description: desc.value, image: pic.get(), gallery: gal.get(), is_new: isNewTog.input.checked, active: vis.input.checked,
+          subs: subs.filter(function (s) { return s[0].trim(); }) };
+        if (!body.name.trim()) return Promise.reject(new Error('Please enter a product name'));
+        return api('/products' + (isNew ? '' : '/' + encodeURIComponent(p.id)), isNew ? 'POST' : 'PUT', body).then(function (r) {
+          var pid = isNew ? r.id : p.id, want = feat.input.checked;
+          if (want === !!p.featured) return;
+          return api('/featured').then(function (ids) {
+            ids = ids.filter(function (x) { return x !== pid; });
+            if (want) ids.push(pid);
+            return api('/featured', 'PUT', { ids: ids });
+          });
+        }).then(function () { toast('Saved'); return reload(paint); });
+      });
+    }
+    load().then(function () { fillCols(); paint(); }).catch(fail);
+  };
+
+  /* ---------- home page ---------- */
+  views.home = function (main) {
+    main.appendChild(header('Home page', 'Control the hero slides, the featured products and the catalogue cards.'));
+    var slidesBox = h('div', { class: 'list' }), featBox = h('div', { class: 'list' }), catBox = h('div', { class: 'list' });
+    var featPick = h('select', { style: 'max-width:340px' });
+    main.appendChild(h('div', { class: 'section', style: 'margin-top:0' },
+      h('div', { class: 'row' }, h('h2', null, 'Hero slides'), h('button', { class: 'btn green sm', onclick: function () { editSlide(); } }, '+ New slide')),
+      h('p', null, 'The large rotating banner at the top of the home page. Use wide photos (about 16:9). At least one slide must stay visible.'),
+      slidesBox));
+    main.appendChild(h('div', { class: 'section' },
+      h('div', { class: 'row' }, h('h2', null, 'Featured products')),
+      h('p', null, 'Shown in the “Featured” row on the home page, in this order (up to 8).'),
+      featBox,
+      h('div', { class: 'row', style: 'margin-top:12px' }, featPick, h('button', { class: 'btn ghost sm', onclick: addFeat }, 'Add to featured'))));
+    main.appendChild(h('div', { class: 'section' },
+      h('div', { class: 'row' }, h('h2', null, 'Catalogue cards')),
+      h('p', null, 'The two catalogue cards near the bottom of the home page.'), catBox));
+
+    var slides = [], feat = [];
+    function paintSlides() {
+      clear(slidesBox);
+      slides.forEach(function (s, i) {
+        var move = function (d) {
+          var ids = slides.map(function (x) { return x.id; }), j = i + d; if (j < 0 || j >= ids.length) return;
+          var t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+          api('/slides/reorder', 'POST', { ids: ids }).then(refresh).catch(fail);
+        };
+        slidesBox.appendChild(h('div', { class: 'item' + (s.active ? '' : ' off') },
+          h('img', { class: 'thumb', src: img(s.image), alt: '', style: 'width:96px' }),
+          h('div', { style: 'min-width:0' }, h('div', { class: 't' }, s.title, s.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
+            h('div', { class: 's' }, s.collection_id ? 'Links to ' + colName(s.collection_id) : 'Links to all products')),
+          h('div', { class: 'acts' },
+            h('button', { class: 'btn ghost sm icon', disabled: i === 0, onclick: function () { move(-1); } }, '↑'),
+            h('button', { class: 'btn ghost sm icon', disabled: i === slides.length - 1, onclick: function () { move(1); } }, '↓'),
+            h('button', { class: 'btn ghost sm', onclick: function () { editSlide(s); } }, 'Edit'),
+            h('button', { class: 'btn danger sm', onclick: function () {
+              if (!confirmBox('Delete this slide?')) return;
+              api('/slides/' + s.id, 'DELETE').then(function () { toast('Slide deleted'); return refresh(); }).catch(fail);
+            } }, 'Delete'))));
+      });
+    }
+    function editSlide(s) {
+      var isNew = !s; s = s || { title: '', image: '', collection_id: '', active: true };
+      var title = h('input', { type: 'text', value: s.title, maxlength: 90, placeholder: 'Frameless, by design.' });
+      var col = h('select', null, h('option', { value: '' }, 'All products'),
+        state.cols.map(function (c) { return h('option', { value: c.id, selected: c.id === s.collection_id }, c.name); }));
+      var pic = imagePicker(s.image, 'Slide photo', 'Wide photo, at least 1600px across.');
+      var vis = toggle('Visible on the website', s.active);
+      drawer(isNew ? 'New slide' : 'Edit slide', [field('Headline', title), field('Button links to', col, 'The “Explore” button opens this category.'), pic, vis], function () {
+        var body = { title: title.value, image: pic.get(), collection_id: col.value || null, active: vis.input.checked };
+        if (!body.title.trim()) return Promise.reject(new Error('Please enter a headline'));
+        if (!body.image) return Promise.reject(new Error('Please upload a slide photo'));
+        return api('/slides' + (isNew ? '' : '/' + s.id), isNew ? 'POST' : 'PUT', body).then(function () { toast('Saved'); return refresh(); });
+      });
+    }
+    function paintFeat() {
+      clear(featBox);
+      if (!feat.length) featBox.appendChild(h('div', { class: 'empty' }, 'Nothing featured yet.'));
+      feat.forEach(function (id, i) {
+        var p = state.prods.find(function (x) { return x.id === id; }); if (!p) return;
+        var save = function (ids) { api('/featured', 'PUT', { ids: ids }).then(function () { feat = ids; return load(); }).then(paintFeat).catch(fail); };
+        featBox.appendChild(h('div', { class: 'item' },
+          h('img', { class: 'thumb', src: img(p.image) || '/assets/placeholder.svg', alt: '' }),
+          h('div', { style: 'min-width:0' }, h('div', { class: 't' }, p.name), h('div', { class: 's' }, p.code + ' · ' + p.collection_name)),
+          h('div', { class: 'acts' },
+            h('button', { class: 'btn ghost sm icon', disabled: i === 0, onclick: function () { var a = feat.slice(); a.splice(i - 1, 0, a.splice(i, 1)[0]); save(a); } }, '↑'),
+            h('button', { class: 'btn ghost sm icon', disabled: i === feat.length - 1, onclick: function () { var a = feat.slice(); a.splice(i + 1, 0, a.splice(i, 1)[0]); save(a); } }, '↓'),
+            h('button', { class: 'btn ghost sm', onclick: function () { save(feat.filter(function (x) { return x !== id; })); } }, 'Remove'))));
+      });
+      clear(featPick);
+      featPick.appendChild(h('option', { value: '' }, 'Choose a product…'));
+      state.prods.filter(function (p) { return feat.indexOf(p.id) < 0; }).forEach(function (p) { featPick.appendChild(h('option', { value: p.id }, p.code + ' — ' + p.name)); });
+    }
+    function addFeat() {
+      if (!featPick.value) return;
+      if (feat.length >= 8) return fail(new Error('Up to 8 featured products'));
+      var ids = feat.concat([featPick.value]);
+      api('/featured', 'PUT', { ids: ids }).then(function () { feat = ids; return load(); }).then(paintFeat).catch(fail);
+    }
+    function paintCats() {
+      clear(catBox);
+      state.cats.forEach(function (k, i) {
+        var name = h('input', { type: 'text', value: k.name, maxlength: 100 });
+        var pages = h('input', { type: 'text', value: k.pages_label, maxlength: 40, placeholder: '01–94' });
+        catBox.appendChild(h('div', { class: 'card' },
+          h('div', { class: 'small muted', style: 'margin-bottom:10px' }, 'Catalogue ' + String(i + 1).padStart(2, '0')),
+          h('div', { class: 'grid2' }, field('Name', name), field('Page range', pages)),
+          h('div', { style: 'margin-top:14px' }, h('button', { class: 'btn ghost sm', onclick: function () {
+            api('/catalogues/' + k.key, 'PUT', { name: name.value, pages_label: pages.value }).then(function () { toast('Saved'); return load(); }).catch(fail);
+          } }, 'Save'))));
+      });
+    }
+    function refresh() {
+      return Promise.all([load(), api('/slides'), api('/featured')]).then(function (r) { slides = r[1]; feat = r[2]; paintSlides(); paintFeat(); paintCats(); }).catch(fail);
+    }
+    refresh();
+  };
+
+  /* ---------- enquiries ---------- */
+  views.enquiries = function (main) {
+    main.appendChild(header('Enquiries', 'Messages sent through the website contact form.',
+      h('a', { class: 'btn ghost', href: '/admin/api/enquiries.csv' }, 'Download CSV')));
+    var box = h('div', { class: 'list' }); main.appendChild(box);
+    var TOPIC = { product: 'Product enquiry', dist: 'Distributorship', visit: 'Display centre visit' };
+    function paint(rows) {
+      clear(box);
+      if (!rows.length) box.appendChild(h('div', { class: 'empty' }, 'No enquiries yet. They will appear here as soon as someone submits the contact form.'));
+      rows.forEach(function (r) {
+        var d = new Date(r.created_at);
+        box.appendChild(h('div', { class: 'card', style: r.status === 'done' ? 'opacity:.6' : '' },
+          h('div', { class: 'row', style: 'justify-content:space-between;align-items:flex-start' },
+            h('div', null, h('h2', null, r.name, r.status === 'new' ? h('span', { class: 'pill g' }, 'New') : null),
+              h('div', { class: 'small muted', style: 'margin-top:4px' }, (TOPIC[r.topic] || r.topic) + ' · ' + d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))),
+            h('div', { class: 'row' },
+              h('button', { class: 'btn ghost sm', onclick: function () {
+                api('/enquiries/' + r.id, 'PUT', { status: r.status === 'new' ? 'done' : 'new' }).then(function () { refresh(); }).catch(fail);
+              } }, r.status === 'new' ? 'Mark handled' : 'Reopen'),
+              h('button', { class: 'btn danger sm', onclick: function () {
+                if (confirmBox('Delete this enquiry?')) api('/enquiries/' + r.id, 'DELETE').then(function () { refresh(); }).catch(fail);
+              } }, 'Delete'))),
+          h('div', { class: 'row small', style: 'margin-top:12px;gap:18px' },
+            h('a', { href: 'tel:' + r.phone.replace(/[^\d+]/g, '') }, r.phone),
+            r.email ? h('a', { href: 'mailto:' + r.email }, r.email) : null, r.city ? h('span', null, r.city) : null,
+            r.items_count ? h('span', { class: 'muted' }, r.items_count + ' item(s) in their enquiry list') : null),
+          r.message ? h('p', { style: 'margin:12px 0 0;white-space:pre-wrap' }, r.message) : null));
+      });
+    }
+    function refresh() { api('/enquiries').then(function (rows) { state.newEnq = rows.filter(function (x) { return x.status === 'new'; }).length; paint(rows); refreshBadge(); }).catch(fail); }
+    refresh();
+  };
+
+  /* ---------- contact details ---------- */
+  views.contact = function (main) {
+    main.appendChild(header('Contact details', 'Display centres and offices shown on the Contact and About pages.'));
+    var cBox = h('div', { class: 'stack' }), oBox = h('div', { class: 'stack' });
+    var centers = [], offices = [];
+    main.appendChild(h('div', { class: 'section', style: 'margin-top:0' }, h('h2', null, 'Display centres'), h('p', { class: 'muted small', style: 'margin:6px 0 14px' }, 'Shown as numbered cards.'), cBox,
+      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { centers.push({ city: '', addr: '', phone: '' }); paintC(); } }, '+ Add display centre'))));
+    main.appendChild(h('div', { class: 'section' }, h('h2', null, 'Offices'), h('p', { class: 'muted small', style: 'margin:6px 0 14px' }, 'Head office and branches on the Contact page.'), oBox,
+      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { offices.push({ tag: '', addr: '', phones: [], email: '' }); paintO(); } }, '+ Add office'))));
+    main.appendChild(h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn green', onclick: function () {
+      api('/contact-info', 'PUT', { centers: centers.filter(function (c) { return c.city.trim(); }), offices: offices.filter(function (o) { return o.tag.trim(); }) })
+        .then(function () { toast('Saved'); }).catch(fail);
+    } }, 'Save contact details')));
+    function bind(obj, key, input) { input.addEventListener('input', function () { obj[key] = input.value; }); return input; }
+    function paintC() {
+      clear(cBox);
+      centers.forEach(function (c, i) {
+        cBox.appendChild(h('div', { class: 'card stack', style: 'gap:12px' },
+          h('div', { class: 'grid2' }, field('City', bind(c, 'city', h('input', { type: 'text', value: c.city }))), field('Phone', bind(c, 'phone', h('input', { type: 'text', value: c.phone })))),
+          field('Address', bind(c, 'addr', h('input', { type: 'text', value: c.addr }))),
+          h('div', null, h('button', { class: 'btn danger sm', onclick: function () { centers.splice(i, 1); paintC(); } }, 'Remove'))));
+      });
+    }
+    function paintO() {
+      clear(oBox);
+      offices.forEach(function (o, i) {
+        var phones = h('input', { type: 'text', value: (o.phones || []).join(', ') });
+        phones.addEventListener('input', function () { o.phones = phones.value.split(',').map(function (s) { return s.trim(); }).filter(Boolean); });
+        oBox.appendChild(h('div', { class: 'card stack', style: 'gap:12px' },
+          h('div', { class: 'grid2' }, field('Label', bind(o, 'tag', h('input', { type: 'text', value: o.tag, placeholder: 'Head office · Bengaluru' }))), field('Email', bind(o, 'email', h('input', { type: 'text', value: o.email })))),
+          field('Address', bind(o, 'addr', h('input', { type: 'text', value: o.addr }))),
+          field('Phone numbers', phones, 'Separate with commas.'),
+          h('div', null, h('button', { class: 'btn danger sm', onclick: function () { offices.splice(i, 1); paintO(); } }, 'Remove'))));
+      });
+    }
+    api('/contact-info').then(function (r) { centers = r.centers; offices = r.offices; paintC(); paintO(); }).catch(fail);
+  };
+
+  /* ---------- settings ---------- */
+  views.settings = function (main) {
+    main.appendChild(header('Settings'));
+    var cur = h('input', { type: 'password', autocomplete: 'current-password' }), nw = h('input', { type: 'password', autocomplete: 'new-password' });
+    main.appendChild(h('div', { class: 'card stack', style: 'max-width:460px' }, h('h2', null, 'Change password'),
+      field('Current password', cur), field('New password', nw, 'At least 8 characters.'),
+      h('div', null, h('button', { class: 'btn green sm', onclick: function () {
+        api('/password', 'POST', { current: cur.value, new: nw.value }).then(function () { toast('Password changed'); cur.value = nw.value = ''; }).catch(fail);
+      } }, 'Update password'))));
+
+    var finBox = h('div', { class: 'stack', style: 'gap:10px' }), fins = [];
+    main.appendChild(h('div', { class: 'section' }, h('h2', null, 'Finish colours'),
+      h('p', null, 'The finishes products can be offered in. Removing a finish also removes it from products using it.'),
+      h('div', { class: 'card stack', style: 'max-width:560px' }, finBox,
+        h('div', { class: 'row' },
+          h('button', { class: 'btn ghost sm', onclick: function () { fins.push({ name: '', color: '#CBCBC7' }); paintF(); } }, '+ Add finish'),
+          h('button', { class: 'btn green sm', onclick: function () {
+            api('/finishes', 'PUT', fins.filter(function (f) { return f.name.trim(); })).then(function () { toast('Saved'); return load(); }).catch(fail);
+          } }, 'Save finishes')))));
+    function paintF() {
+      clear(finBox);
+      fins.forEach(function (f, i) {
+        var n = h('input', { type: 'text', value: f.name, placeholder: 'Finish name' }), c = h('input', { type: 'color', value: f.color });
+        n.addEventListener('input', function () { f.name = n.value; }); c.addEventListener('input', function () { f.color = c.value; });
+        finBox.appendChild(h('div', { class: 'row', style: 'flex-wrap:nowrap' }, c, n, h('button', { class: 'btn ghost sm icon', onclick: function () { fins.splice(i, 1); paintF(); } }, '×')));
+      });
+    }
+    api('/finishes').then(function (r) { fins = r.map(function (x) { return { name: x.name, color: x.color }; }); paintF(); }).catch(fail);
+  };
+
+  /* ---------- boot ---------- */
+  var start = (location.hash || '').slice(1);
+  if (views[start]) state.view = start;
+  window.addEventListener('hashchange', function () { var v = location.hash.slice(1); if (views[v] && v !== state.view && state.user) { state.view = v; render(); } });
+  api('/me').then(function (u) { state.user = u; render(); refreshBadge(); }, function () { state.user = null; render(); });
+})();

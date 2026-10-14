@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Products — SAP Hardware</title>
+<meta name="description" content="Browse 70 SAP Hardware series. Filter by collection, catalogue, material and finish to find glass fittings, door hardware, sliding systems, wardrobe and kitchen fittings.">
+<meta property="og:title" content="Products — SAP Hardware">
+<meta property="og:description" content="Browse 70 SAP Hardware series. Filter by collection, catalogue, material and finish to find glass fittings, door hardware, sliding systems, wardrobe and kitchen fittings.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/scenes/hero-glass.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#EFEFEF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&amp;display=swap" rel="stylesheet">
+<style>
+html{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,[data-menu]::-webkit-scrollbar{display:none;width:0;height:0}
+html,body{margin:0;padding:0;background:#EFEFEF;color:#1C1C1C;-webkit-font-smoothing:antialiased;font-family:'Geist',system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:#1C1C1C;text-decoration:none}
+a:hover{color:#1C1C1C}
+::selection{background:#00A65B;color:#1C1C1C}
+input,button,select{font-family:inherit;color:inherit}
+input::placeholder{color:#8D8E8E}
+</style>
+<script>try{if(sessionStorage.getItem("sapNav")){sessionStorage.removeItem("sapNav");var c=document.createElement("div");c.id="sap-cover";c.style.cssText="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;display:flex;align-items:center;justify-content:center";c.innerHTML="<img src=\"assets/sap-logo-light.svg\" alt=\"\" style=\"width:120px;opacity:.9\">";(document.body||document.documentElement).appendChild(c);setTimeout(function(){c.remove()},3000);}}catch(e){}</script>
+<script src="site.js"></script>
+</helmet>
+
+<header data-hdr="" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(239,239,239,.82);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .3s">
+  <div style="max-width:1440px;margin:0 auto;padding:16px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:space-between;gap:24px">
+    <a href="index.html" aria-label="SAP home" style="display:block;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <nav style="display:flex;align-items:center;gap:clamp(10px,2.6vw,36px);font-size:14px;font-weight:450">
+      <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+      <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
+      <a href="products.html" style="opacity:{{ navProducts }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navProductsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Products</a>
+      <a href="index.html#collections" style="opacity:{{ navCollections }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCollectionsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Collections</a>
+      <a href="index.html#catalogues" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
+      <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
+      </sc-if>
+      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<sc-if value="{{ hasEnq }}" hint-placeholder-val="{{ false }}"><span data-badge="" style="min-width:20px;height:20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px">{{ enqCount }}</span></sc-if><span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
+      <sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleMenu }}" aria-label="Open menu" style-active="transform:scale(.94)" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 14px;border-radius:999px;border:1px solid #C8C9C9;background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Menu<span style="width:28px;height:28px;border-radius:999px;background:#1C1C1C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="width:12px;height:1.5px;background:#EFEFEF"></span><span style="width:12px;height:1.5px;background:#EFEFEF"></span></span></button></sc-if>
+    </nav>
+  </div>
+  <div data-progress="" style="position:absolute;left:0;right:0;bottom:0;height:2px;background:#00A65B;transform:scaleX(0);transform-origin:left"></div>
+</header>
+
+<div data-menu="" aria-hidden="{{ menuHidden }}" style="position:fixed;inset:0;z-index:2147482000;background:#1C1C1C;color:#EFEFEF;clip-path:{{ mClip }};-webkit-clip-path:{{ mClip }};transition:{{ mClipT }};pointer-events:{{ mPe }};display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain">
+  <div style="position:fixed;width:140vmax;height:140vmax;right:-70vmax;top:-70vmax;border-radius:999px;background:#00A65B;transform:{{ mBlobTf }};transition:{{ mBlobT }};pointer-events:none"></div>
+  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(20px,4vw,56px)">
+    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP home" style="display:block;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <button onClick="{{ closeMenu }}" aria-label="Close menu" style-active="transform:scale(.9)" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 16px;border-radius:999px;border:1px solid #3A3B3B;background:transparent;color:#EFEFEF;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Close<span style="width:32px;height:32px;border-radius:999px;background:#00A65B;color:#1C1C1C;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transform:{{ mXTf }};transition:transform .9s cubic-bezier(.2,1.3,.3,1) .35s">×</span></button>
+  </div>
+  <nav style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:24px clamp(20px,4vw,56px)">
+    <sc-for list="{{ menuItems }}" as="it" hint-placeholder-count="6">
+      <a href="{{ it.href }}" onClick="{{ closeMenu }}" style="display:block;overflow:hidden;padding:2px 0 6px;transition:transform .5s cubic-bezier(.2,.7,.2,1)" style-hover="transform:translateX(10px)" style-active="transform:translateX(10px)">
+        <span style="display:flex;align-items:flex-start;gap:14px;transform:{{ it.tf }};transition:{{ it.tt }};transform-origin:left bottom">
+          <span style="font-size:13px;font-weight:500;color:#00A65B;padding-top:.9em;font-variant-numeric:tabular-nums">{{ it.num }}</span>
+          <span style="font-size:clamp(46px,13vw,96px);font-weight:500;letter-spacing:-.055em;line-height:1;color:{{ it.col }}">{{ it.label }}</span>
+          <span style="width:12px;height:12px;border-radius:999px;background:{{ it.dot }};margin-top:.7em;flex:none"></span>
+        </span>
+      </a>
+    </sc-for>
+  </nav>
+  <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:24px clamp(20px,4vw,56px) 28px;border-top:1px solid #2E2F2F;margin:0 clamp(20px,4vw,56px);padding-left:0;padding-right:0;opacity:{{ mFade }};transform:{{ mFadeTf }};transition:{{ mFadeT }}">
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:15px">
+      <a href="tel:+918088909103" style="color:#EFEFEF;font-weight:500">+91 80889 09103</a>
+      <a href="mailto:saphardware2008@gmail.com" style="color:#A2A3A3">saphardware2008@gmail.com</a>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ menuSocials }}" as="so" hint-placeholder-count="4"><a href="#" style="padding:8px 12px;border-radius:999px;border:1px solid #3A3B3B;color:#D6D7D7;font-size:13px">{{ so }}</a></sc-for>
+    </div>
+  </div>
+</div>
+
+<main data-screen-label="Products" style="max-width:1440px;margin:0 auto;padding:clamp(130px,16vh,170px) clamp(20px,4vw,56px) 0">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+    <h1 style="margin:0;overflow:hidden;padding-bottom:.06em;font-size:clamp(44px,6.4vw,96px);font-weight:500;letter-spacing:-.055em;line-height:.95"><span data-rv="line" style="display:block">{{ shopTitle }}</span></h1>
+    <span data-rv="" style="font-size:14px;color:#676868;font-variant-numeric:tabular-nums">{{ resultCount }} of 70 series</span>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:clamp(32px,4vw,48px) 0 0">
+    <sc-for list="{{ colTabs }}" as="t" hint-placeholder-count="9">
+      <button onClick="{{ t.pick }}" style-active="transform:scale(.96)" style="flex:none;padding:10px 16px;transition:background .3s,color .3s,border-color .3s,transform .2s;border-radius:999px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};font-size:14px;font-weight:450;cursor:pointer;white-space:nowrap;transition:background .3s,color .3s">{{ t.name }}<span style="margin-left:8px;opacity:.5;font-size:12px">{{ t.count }}</span></button>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:20px 0;margin-top:20px;border-top:1px solid #DCDDDD;border-bottom:1px solid #DCDDDD">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:34px">
+      <span style="font-size:13px;color:#676868">{{ chipsLabel }}</span>
+      <sc-for list="{{ chips }}" as="ch" hint-placeholder-count="0">
+        <button onClick="{{ ch.remove }}" style="display:flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;border:none;background:#E3E4E4;font-size:13px;cursor:pointer">{{ ch.label }}<span style="opacity:.5">×</span></button>
+      </sc-for>
+      <sc-if value="{{ hasChips }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearAll }}" style="border:none;background:none;font-size:13px;text-decoration:underline;cursor:pointer;color:#676868">Clear all</button></sc-if>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleFilters }}" style="padding:10px 16px;border-radius:999px;border:1px solid #1C1C1C;background:{{ fBtnBg }};color:{{ fBtnFg }};font-size:14px;font-weight:500;cursor:pointer;transition:background .3s,color .3s">{{ fBtnLabel }}</button></sc-if>
+      <input value="{{ q }}" onInput="{{ onSearch }}" placeholder="Search series" style="flex:1 1 160px;min-width:0;width:200px;padding:10px 14px;border-radius:999px;border:1px solid #DCDDDD;background:#F7F7F7;font-size:14px;outline:none">
+      <select value="{{ sort }}" onChange="{{ onSort }}" style="padding:10px 14px;border-radius:999px;border:1px solid #DCDDDD;background:#F7F7F7;font-size:14px;outline:none;cursor:pointer">
+        <option value="catalogue">Catalogue order</option>
+        <option value="az">A – Z</option>
+        <option value="new">New first</option>
+      </select>
+      <div style="display:flex;padding:3px;border-radius:999px;border:1px solid #DCDDDD;background:#F7F7F7">
+        <sc-for list="{{ densities }}" as="d" hint-placeholder-count="3">
+          <button onClick="{{ d.pick }}" aria-label="{{ d.label }}" style="width:34px;height:30px;border-radius:999px;border:none;background:{{ d.bg }};color:{{ d.fg }};font-size:12px;font-weight:500;cursor:pointer">{{ d.n }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:clamp(32px,4vw,64px);flex-wrap:wrap;align-items:flex-start;padding-top:clamp(32px,4vw,48px)">
+    <sc-if value="{{ showAside }}" hint-placeholder-val="{{ true }}">
+    <aside style="flex:1 1 220px;max-width:{{ asideMax }};display:flex;flex-direction:column;gap:36px;position:{{ stickPos }};top:110px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Catalogue</span>
+        <sc-for list="{{ catOpts }}" as="o" hint-placeholder-count="2">
+          <button onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;border:none;background:none;padding:2px 0;font-size:14px;cursor:pointer;text-align:left;transition:transform .35s cubic-bezier(.2,.7,.2,1)" style-hover="transform:translateX(3px)">
+            <span style="width:16px;height:16px;border-radius:3px;border:1px solid {{ o.bd }};background:{{ o.bg }};flex:none;display:flex;align-items:center;justify-content:center;color:#EFEFEF;font-size:10px;transition:background .2s">✓</span>
+            <span style="flex:1">{{ o.name }}</span><span style="color:#8D8E8E;font-size:12px">{{ o.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Material</span>
+        <sc-for list="{{ matOpts }}" as="o" hint-placeholder-count="6">
+          <button onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;border:none;background:none;padding:2px 0;font-size:14px;cursor:pointer;text-align:left;transition:transform .35s cubic-bezier(.2,.7,.2,1)" style-hover="transform:translateX(3px)">
+            <span style="width:16px;height:16px;border-radius:3px;border:1px solid {{ o.bd }};background:{{ o.bg }};flex:none;display:flex;align-items:center;justify-content:center;color:#EFEFEF;font-size:10px;transition:background .2s">✓</span>
+            <span style="flex:1">{{ o.name }}</span><span style="color:#8D8E8E;font-size:12px">{{ o.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Finish</span>
+        <div style="display:grid;grid-template-columns:repeat(6,28px);gap:10px">
+          <sc-for list="{{ finOpts }}" as="o" hint-placeholder-count="6">
+            <button onClick="{{ o.toggle }}" title="{{ o.name }}" aria-label="{{ o.name }}" style="width:28px;height:28px;border-radius:999px;border:none;background:{{ o.c }};box-shadow:{{ o.ring }};cursor:pointer;transition:box-shadow .25s,transform .35s cubic-bezier(.2,.7,.2,1)" style-hover="transform:scale(1.12)"></button>
+          </sc-for>
+        </div>
+        <span style="font-size:13px;color:#676868">{{ finLabel }}</span>
+      </div>
+      <button onClick="{{ toggleNew }}" style="display:flex;justify-content:space-between;align-items:center;border:none;background:none;padding:0;font-size:14px;cursor:pointer">
+        <span>New series only</span>
+        <span style="width:38px;height:22px;border-radius:999px;background:{{ newTrack }};position:relative;transition:background .25s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:999px;background:#fff;transform:{{ newKnob }};transition:transform .25s cubic-bezier(.2,.7,.2,1)"></span></span>
+      </button>
+    </aside>
+    </sc-if>
+
+    <div style="flex:999 1 560px;min-width:0">
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+        <div data-grid="" style="display:grid;grid-template-columns:repeat(auto-fill,minmax({{ minCol }},1fr));gap:clamp(28px,3vw,44px) clamp(16px,1.6vw,24px)">
+          <sc-for list="{{ results }}" as="p" hint-placeholder-count="9">
+            <a href="product.html?id={{ p.id }}" data-hov="" data-rv="" data-d="{{ p.delay }}" style="display:flex;flex-direction:column;gap:14px">
+              <div style="position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
+                <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ p.img }}" alt="" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.05)"></sc-if><span data-hx="translateY(0)" style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#EFEFEF;font-size:12px;font-weight:500;transform:translateY(calc(100% + 20px));transition:transform .5s cubic-bezier(.2,.7,.2,1);pointer-events:none">View series <span style="width:6px;height:6px;border-radius:999px;background:#00A65B"></span></span>
+                <sc-if value="{{ p.isNew }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;padding:5px 9px;border-radius:999px;background:#00A65B;font-size:11px;font-weight:600">New</span></sc-if>
+                <div style="position:absolute;right:12px;bottom:12px;display:flex;gap:4px">
+                  <sc-for list="{{ p.sw }}" as="s" hint-placeholder-count="3"><span style="width:12px;height:12px;border-radius:999px;background:{{ s.c }};box-shadow:0 0 0 1.5px #EFEFEF"></span></sc-for>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
+                <span style="font-size:16px;font-weight:500;letter-spacing:-.015em;line-height:1.25">{{ p.name }}</span>
+                <span style="font-size:12px;color:#8D8E8E;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.code }}</span>
+              </div>
+              <span style="font-size:13px;color:#676868;margin-top:-8px">{{ p.colName }} · pp. {{ p.pages }}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:120px 0;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+          <span style="font-size:24px;font-weight:500;letter-spacing:-.03em">No series match these filters.</span>
+          <button onClick="{{ clearAll }}" style="padding:12px 20px;border-radius:999px;border:1px solid #1C1C1C;background:none;font-size:14px;cursor:pointer">Clear filters</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</main>
+
+<footer id="contact" style="margin-top:clamp(120px,16vw,200px);background:#1C1C1C;color:#EFEFEF">
+  <div style="max-width:1440px;margin:0 auto;padding:clamp(64px,8vw,112px) clamp(20px,4vw,56px) 28px;display:flex;flex-direction:column;gap:clamp(64px,8vw,112px)">
+    <div style="display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:28px;max-width:520px">
+        <h2 style="margin:0;font-size:clamp(34px,4.4vw,60px);font-weight:500;letter-spacing:-.045em;line-height:1">Specifying a project?</h2>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Build an enquiry list from any series and our team will come back with drawings, finishes and project pricing.</p>
+        <a href="contact.html" data-mag="" style-active="transform:scale(.97)" style="transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s;align-self:flex-start;padding:15px 24px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-size:15px;font-weight:500" style-hover="color:#1C1C1C;background:#22B56E">Start an enquiry</a>
+      </div>
+      <div style="flex:1 1 300px;max-width:620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:32px 48px;font-size:14px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Collections</span>
+          <sc-for list="{{ collections }}" as="c" hint-placeholder-count="8"><a href="products.html?c={{ c.id }}" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">{{ c.name }}</a></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Explore</span>
+          <a href="products.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">All products</a>
+          <a href="index.html#catalogues" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Catalogues</a>
+          <a href="index.html#collections" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Collections</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Company</span>
+          <a href="about.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">About us</a>
+          <a href="contact.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Contact</a>
+          <a href="contact.html?type=dist" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Distributorship</a>
+        </div>
+      </div>
+    </div>
+    <img data-rv="" src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block">
+    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868;border-top:1px solid #2A2A2A;padding-top:24px">
+      <span>© 2026 SAP — A Quality Product</span><span>Architectural Furniture Fitting</span>
+    </div>
+  </div>
+</footer>
+
+
+<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;imageMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;generated&quot;,&quot;placeholder&quot;],&quot;default&quot;:&quot;generated&quot;,&quot;tsType&quot;:&quot;'generated'|'placeholder'&quot;},&quot;defaultDensity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;2&quot;,&quot;3&quot;,&quot;4&quot;],&quot;default&quot;:&quot;3&quot;,&quot;tsType&quot;:&quot;'2'|'3'|'4'&quot;}}">
+// Content comes from the CMS database (injected by the server as window.__SAP_DATA).
+const D = window.__SAP_DATA || { collections: [], finishes: [], catalogues: [], products: [], slides: [], featured: [], centers: [], offices: [] };
+const PH = 'assets/placeholder.svg';
+const COLS = D.collections.map(c => ({ id: c.id, name: c.name, blurb: c.blurb, q: c.q, mats: c.mats }));
+const FIN = D.finishes;
+const CAT = {};
+D.catalogues.forEach(k => { CAT[k.key] = k.name; });
+const SCENE = {};
+D.collections.forEach(c => { SCENE[c.id] = c.scene || ''; });
+const FINC = {};
+FIN.forEach(f => { FINC[f.n] = f.c; });
+const CNT = {};
+const PRODUCTS = D.products.filter(p => COLS.some(c => c.id === p.col)).map((p, i) => {
+  const col = COLS.find(c => c.id === p.col);
+  let fins = p.fins.filter(n => FINC[n]).map(n => ({ n, c: FINC[n] }));
+  if (!fins.length && FIN.length) fins = [{ n: FIN[0].n, c: FIN[0].c }];
+  const shot = CNT[p.col] = (CNT[p.col] ?? -1) + 1;
+  return {
+    id: p.id, name: p.name, col: p.col, colName: col.name, cat: p.cat, catName: CAT[p.cat] || '', pages: p.pages, ord: i,
+    code: p.code, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
+    img: p.img || SCENE[p.col] || PH, gallery: (p.gallery || []).filter(Boolean), desc: p.desc || ''
+  };
+});
+const SHOT = (c, n) => { const l = PRODUCTS.filter(p => p.col === c); return l.length ? l[n % l.length].img : (SCENE[c] || PH); };
+const SLIDE_MS = 6500;
+const SLIDES = D.slides.length
+  ? D.slides.map(s => ({ id: s.col || '', col: s.label, title: s.title, img: s.img }))
+  : [{ id: '', col: 'SAP Hardware', title: 'Architectural furniture fitting.', img: PH }];
+const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc', 'Leather'].filter(m => PRODUCTS.some(p => p.mat === m))
+  .concat([...new Set(PRODUCTS.map(p => p.mat).filter(m => m))].filter(m => !['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc', 'Leather'].includes(m)));
+
+
+const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
+const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
+const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
+const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'index.html#catalogues'], ['About', 'about.html'], ['Contact', 'contact.html']];
+const MOBV = c => {
+  const o = !!c.state.menu, at = 'circle(%r at calc(100% - 50px) 42px)';
+  const set = v => { c.setState({ menu: v }); try { document.body.style.overflow = v ? 'hidden' : ''; } catch (e) {} };
+  let here = 'index.html'; try { here = location.pathname.split('/').pop() || 'index.html'; } catch (e) {}
+  const n = MENU_ITEMS.length;
+  return {
+    hasEnq: (c.state.enq || 0) > 0, mob: !!c.state.mob, desk: !c.state.mob, menuOpen: o, menuHidden: o ? 'false' : 'true',
+    toggleMenu: () => set(!o), closeMenu: () => set(false), menuLabel: 'Menu',
+    stickPos: c.state.mob ? 'static' : 'sticky', asideMax: c.state.mob ? '100%' : '260px',
+    mClip: at.replace('%r', o ? '150%' : '0%'),
+    mClipT: o ? 'clip-path 1s cubic-bezier(.76,0,.24,1)' : 'clip-path .8s cubic-bezier(.76,0,.24,1) .35s',
+    mPe: o ? 'auto' : 'none',
+    mBlobTf: o ? 'scale(0)' : 'scale(1)',
+    mBlobT: o ? 'transform 1.1s cubic-bezier(.76,0,.24,1) .12s' : 'transform .6s cubic-bezier(.76,0,.24,1) .2s',
+    mXTf: o ? 'rotate(0deg) scale(1)' : 'rotate(-180deg) scale(0)',
+    mFade: o ? '1' : '0', mLogoD: o ? '.6s' : '0s',
+    mFadeTf: o ? 'none' : 'translateY(24px)',
+    mFadeT: o ? 'opacity .7s ease .85s, transform .9s cubic-bezier(.2,.7,.2,1) .85s' : 'opacity .2s ease, transform .3s ease',
+    menuItems: MENU_ITEMS.map(([label, href], i) => ({ label, href, num: '0' + (i + 1),
+      tf: o ? 'translateY(0) rotate(0deg) skewY(0deg)' : 'translateY(115%) rotate(7deg) skewY(4deg)',
+      tt: o ? 'transform 1.1s cubic-bezier(.2,.9,.1,1) ' + (380 + i * 75) + 'ms' : 'transform .5s cubic-bezier(.7,0,.84,0) ' + ((n - 1 - i) * 35) + 'ms',
+      col: here === href ? '#00A65B' : '#EFEFEF', dot: here === href ? '#00A65B' : 'transparent' })),
+    menuSocials: ['Facebook', 'Instagram', 'YouTube', 'WhatsApp']
+  };
+};
+const QS = k => { try { return new URLSearchParams(location.search).get(k); } catch (e) { return null; } };
+
+class Component extends DCLogic {
+  state = (() => { const c = QS('c'), k = QS('cat'); return {
+    f: { cols: c && COLS.some(x => x.id === c) ? [c] : [], cats: k && CAT[k] ? [k] : [], mats: [], fins: [], newOnly: QS('new') === '1' },
+    q: QS('q') || '', sort: 'catalogue', density: null, enq: ENQ0() }; })();
+
+  componentDidMount() {
+    this._enq = e => this.setState({ enq: e.detail });
+    window.addEventListener('sap-enq', this._enq);
+    this._rs = () => { const m = innerWidth < 820; if (m !== this.state.mob) { this.setState({ mob: m, menu: m ? this.state.menu : false }); if (!m) document.body.style.overflow = ''; } };
+    this._rs(); window.addEventListener('resize', this._rs);
+    const go = () => window.SAP ? (SAP.fx.mount(), SAP.fx.scan()) : setTimeout(go, 40);
+    go();
+    if (this.init) this.init();
+  }
+  componentDidUpdate(pp, ps) { if (window.SAP) SAP.fx.scan(); if (this.updated) this.updated(ps); }
+  componentWillUnmount() { window.removeEventListener('sap-enq', this._enq); window.removeEventListener('resize', this._rs); clearInterval(this.si); clearTimeout(this.tt); clearTimeout(this.at); }
+  flash(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2400); }
+
+  init() { const c = this.state.f.cols.length === 1 && COLS.find(x => x.id === this.state.f.cols[0]); if (c) { document.title = c.name + ' — SAP Hardware'; const m = document.querySelector('meta[name="description"]'); if (m) m.setAttribute('content', c.name + ' by SAP Hardware: ' + c.blurb); } }
+  updated(ps) {
+    const sig = s => JSON.stringify([s.f, s.q, s.sort, s.density]);
+    if (ps && sig(ps) !== sig(this.state) && window.SAP) SAP.fx.pulse('[data-grid]');
+  }
+  toggle(key, v) { this.setState(s => { const arr = s.f[key]; return { f: { ...s.f, [key]: arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v] } }; }); }
+  filtered(except) {
+    const { f, q } = this.state, s = q.trim().toLowerCase();
+    return PRODUCTS.filter(p =>
+      (except === 'cols' || !f.cols.length || f.cols.includes(p.col)) &&
+      (except === 'cats' || !f.cats.length || f.cats.includes(p.cat)) &&
+      (except === 'mats' || !f.mats.length || f.mats.includes(p.mat)) &&
+      (except === 'fins' || !f.fins.length || p.fins.some(x => f.fins.includes(x.n))) &&
+      (!f.newOnly || p.isNew) && (!s || p.name.toLowerCase().includes(s) || p.colName.toLowerCase().includes(s)));
+  }
+  renderVals() {
+    const { f, sort } = this.state;
+    const showImages = (this.props.imageMode ?? 'generated') === 'generated';
+    const density = this.state.density || this.props.defaultDensity || '3';
+    let res = this.filtered();
+    if (sort === 'az') res = [...res].sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === 'new') res = [...res].sort((a, b) => (b.isNew - a.isNew) || a.ord - b.ord);
+    const box = on => ({ bd: on ? '#1C1C1C' : '#C8C9C9', bg: on ? '#1C1C1C' : 'transparent' });
+    const baseCols = this.filtered('cols');
+    const colTabs = [{ id: null, name: 'All' }, ...COLS].map(c => {
+      const on = c.id ? (f.cols.length === 1 && f.cols[0] === c.id) : !f.cols.length;
+      return { name: c.name, count: c.id ? baseCols.filter(p => p.col === c.id).length : baseCols.length,
+        bg: on ? '#1C1C1C' : 'transparent', fg: on ? '#EFEFEF' : '#1C1C1C', bd: on ? '#1C1C1C' : '#DCDDDD',
+        pick: () => this.setState(s => ({ f: { ...s.f, cols: c.id ? [c.id] : [] } })) };
+    });
+    const bc = this.filtered('cats'), bm = this.filtered('mats');
+    const chips = [
+      ...f.cols.map(v => ({ label: COLS.find(c => c.id === v).name, remove: () => this.toggle('cols', v) })),
+      ...f.cats.map(v => ({ label: CAT[v], remove: () => this.toggle('cats', v) })),
+      ...f.mats.map(v => ({ label: v, remove: () => this.toggle('mats', v) })),
+      ...f.fins.map(v => ({ label: v, remove: () => this.toggle('fins', v) })),
+      ...(f.newOnly ? [{ label: 'New', remove: () => this.setState(s => ({ f: { ...s.f, newOnly: false } })) }] : [])
+    ];
+    return {
+      ...MOBV(this), ...NAV('Products'), showImages, enqCount: this.state.enq,
+      shopTitle: f.cols.length === 1 ? COLS.find(c => c.id === f.cols[0]).name : 'All products',
+      resultCount: res.length, results: res.map((p, i) => CARD(p, i)),
+      hasResults: res.length > 0, noResults: res.length === 0,
+      colTabs,
+      catOpts: ['ap', 'af'].map(k => ({ name: CAT[k], count: bc.filter(p => p.cat === k).length, ...box(f.cats.includes(k)), toggle: () => this.toggle('cats', k) })),
+      matOpts: MATS.map(m => ({ name: m, count: bm.filter(p => p.mat === m).length, ...box(f.mats.includes(m)), toggle: () => this.toggle('mats', m) })).filter(o => o.count || f.mats.includes(o.name)),
+      finOpts: FIN.map(x => ({ name: x.n, c: x.c, ring: f.fins.includes(x.n) ? '0 0 0 2px #EFEFEF, 0 0 0 3.5px #1C1C1C' : 'inset 0 0 0 1px rgba(28,28,28,.08)', toggle: () => this.toggle('fins', x.n) })),
+      finLabel: f.fins.length ? f.fins.join(', ') : 'Any finish',
+      chips, hasChips: chips.length > 0, chipsLabel: chips.length ? 'Filtered by' : 'Showing everything',
+      clearAll: () => this.setState({ f: { cols: [], cats: [], mats: [], fins: [], newOnly: false }, q: '' }),
+      toggleNew: () => this.setState(s => ({ f: { ...s.f, newOnly: !s.f.newOnly } })),
+      newTrack: f.newOnly ? '#1C1C1C' : '#D3D4D4', newKnob: f.newOnly ? 'translateX(16px)' : 'none',
+      q: this.state.q, onSearch: e => this.setState({ q: e.target.value }),
+      sort, onSort: e => this.setState({ sort: e.target.value }),
+      densities: ['2', '3', '4'].map(n => ({ n, label: n + ' columns', bg: density === n ? '#1C1C1C' : 'transparent', fg: density === n ? '#EFEFEF' : '#1C1C1C', pick: () => this.setState({ density: n }) })),
+      showAside: !this.state.mob || !!this.state.fo, toggleFilters: () => this.setState(s => ({ fo: !s.fo })),
+      fBtnLabel: this.state.fo ? 'Hide filters' : 'Filters' + (chips.length ? ' (' + chips.length + ')' : ''), fBtnBg: this.state.fo ? '#1C1C1C' : 'transparent', fBtnFg: this.state.fo ? '#EFEFEF' : '#1C1C1C',
+      minCol: this.state.mob && density === '4' ? '150px' : density === '2' ? '340px' : density === '4' ? '190px' : '240px'
+    };
+  }
+}
+</script>
+</body>
+</html>

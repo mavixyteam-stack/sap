@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+data/
+.DS_Store
+._*
+.git
+README.md

@@ -725,5 +725,5 @@ def site(path: str):
         return _html(nf, 404) if nf.exists() else PlainTextResponse("Not found", status_code=404)
     if p.suffix == ".html":
         return _html(p)
-    ttl = "public, max-age=31536000" if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".svg") else "public, max-age=3600"
+    ttl = "public, max-age=31536000" if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".svg") else "no-cache"
     return FileResponse(p, headers={"Cache-Control": ttl, **SEC_HEADERS})

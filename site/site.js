@@ -231,6 +231,17 @@
     if (el && el.animate && !reduce) el.animate([{ opacity: 0.25, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: E });
   }
 
+  // Safety net: the page renders its markup twice (raw HTML, then React). If the visible
+  // loader overlay is a copy the intro never attached to, it would cover the page forever.
+  (function guard(n) {
+    var L = document.getElementById('sap-loader');
+    if (L && L.isConnected && !L.dataset.run && n > 8) {
+      L.style.display = 'none'; L.style.pointerEvents = 'none'; L.innerHTML = '';
+      window.__sapHold = false; release();
+    }
+    if (n < 150) setTimeout(function () { guard(n + 1); }, 100);
+  })(0);
+
   window.SAP = { fx: { mount: mount, scan: scan, pulse: pulse, release: release, loader: loader }, enq: enq };
   (function wait(n) { if (document.getElementById('sap-loader')) loader(); else if (n < 200) setTimeout(function () { wait(n + 1); }, 25); })(0);
 })();

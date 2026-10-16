@@ -46,7 +46,6 @@ input::placeholder{color:#8D8E8E}
       <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
       <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
       <a href="products.html" style="opacity:{{ navProducts }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navProductsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Products</a>
-      <a href="index.html#collections" style="opacity:{{ navCollections }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCollectionsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Collections</a>
       <a href="catalogues.html" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
       <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
       </sc-if>
@@ -232,8 +231,8 @@ const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc',
 
 const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
 const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
-const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
-const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'catalogues.html'], ['About', 'about.html'], ['Contact', 'contact.html']];
+const NAV = act => { const o = {}; ['Home', 'Products', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
+const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Catalogues', 'catalogues.html'], ['About', 'about.html'], ['Contact', 'contact.html']];
 const MOBV = c => {
   const o = !!c.state.menu, at = 'circle(%r at calc(100% - 50px) 42px)';
   const set = v => { c.setState({ menu: v }); try { document.body.style.overflow = v ? 'hidden' : ''; } catch (e) {} };

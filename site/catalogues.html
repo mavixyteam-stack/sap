@@ -150,14 +150,13 @@ input::placeholder{color:#8D8E8E}
       </div>
       <div style="flex:1 1 300px;max-width:620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:32px 48px;font-size:14px">
         <div style="display:flex;flex-direction:column;gap:12px">
-          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Collections</span>
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Categories</span>
           <sc-for list="{{ collections }}" as="c" hint-placeholder-count="8"><a href="products.html?c={{ c.id }}" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">{{ c.name }}</a></sc-for>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Explore</span>
           <a href="products.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">All products</a>
           <a href="catalogues.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Catalogues</a>
-          <a href="index.html#collections" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Collections</a>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Company</span>

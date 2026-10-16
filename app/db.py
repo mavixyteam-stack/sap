@@ -117,20 +117,36 @@ def seed(c):
 
 
 def import_catalogue(c):
-    """One-time load of the printed catalogue (series order, components, photos) from catalogue_data.json."""
+    """Load the printed catalogue (series order, components, photos) from catalogue_data.json.
+
+    Version 1 = first import. Later versions only refresh cover images/galleries, and only where the
+    image still points at bundled catalogue art (so anything the client replaced is left alone).
+    """
     f = HERE / "catalogue_data.json"
-    if not f.exists() or get_setting(c, "catalogue_imported"):
+    if not f.exists():
         return
     d = json.loads(f.read_text(encoding="utf-8"))
-    for pid, s in d["series"].items():
-        r = c.execute("UPDATE products SET series_no=%s, pages=%s, image=%s, gallery=%s, description=%s, "
-                      "material=%s, finishes='{}' WHERE id=%s RETURNING id",
-                      (s["no"], s["pages"], s["image"], s["gallery"], s["description"], s.get("material", ""), pid)).fetchone()
-        if not r:
-            continue
-        c.execute("DELETE FROM components WHERE product_id=%s", (pid,))
-        for i, k in enumerate(s["components"]):
-            c.execute("INSERT INTO components(product_id,section,num,code,name,material,image,position) "
-                      "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
-                      (pid, k["section"], k["num"], k["code"], k["name"], k["material"], k["image"], i))
-    set_setting(c, "catalogue_imported", True)
+    want = d.get("version", 1)
+    have = get_setting(c, "catalogue_imported")
+    have = 1 if have is True else (have or 0)
+    if have >= want:
+        return
+    if have <= 1:  # first import, or the v1 -> v2 refresh (corrected components, new covers, written overviews)
+        for pid, s in d["series"].items():
+            r = c.execute("UPDATE products SET series_no=%s, pages=%s, "
+                          "image=CASE WHEN image='' OR image LIKE 'assets/%%' THEN %s ELSE image END, gallery=%s, "
+                          "description=CASE WHEN description='' OR description LIKE 'A complete %%' THEN %s ELSE description END, "
+                          "material=%s, finishes='{}' WHERE id=%s RETURNING id",
+                          (s["no"], s["pages"], s["image"], s["gallery"], s["description"], s.get("material", ""), pid)).fetchone()
+            if not r:
+                continue
+            c.execute("DELETE FROM components WHERE product_id=%s", (pid,))
+            for i, k in enumerate(s["components"]):
+                c.execute("INSERT INTO components(product_id,section,num,code,name,material,image,position) "
+                          "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                          (pid, k["section"], k["num"], k["code"], k["name"], k["material"], k["image"], i))
+    else:
+        for pid, s in d["series"].items():
+            c.execute("UPDATE products SET image=%s, gallery=%s WHERE id=%s AND image LIKE 'assets/catalogue/%%'",
+                      (s["image"], s["gallery"], pid))
+    set_setting(c, "catalogue_imported", want)

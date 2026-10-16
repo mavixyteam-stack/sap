@@ -133,7 +133,7 @@ input::placeholder{color:#8D8E8E}
           </button>
         </sc-for>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
+      <sc-if value="{{ hasMatOpts }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:12px">
         <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Material</span>
         <sc-for list="{{ matOpts }}" as="o" hint-placeholder-count="6">
           <button onClick="{{ o.toggle }}" style="display:flex;align-items:center;gap:12px;border:none;background:none;padding:2px 0;font-size:14px;cursor:pointer;text-align:left;transition:transform .35s cubic-bezier(.2,.7,.2,1)" style-hover="transform:translateX(3px)">
@@ -141,7 +141,7 @@ input::placeholder{color:#8D8E8E}
             <span style="flex:1">{{ o.name }}</span><span style="color:#8D8E8E;font-size:12px">{{ o.count }}</span>
           </button>
         </sc-for>
-      </div>
+      </div></sc-if>
       <sc-if value="{{ hasFinOpts }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:14px">
         <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Finish</span>
         <div style="display:grid;grid-template-columns:repeat(6,28px);gap:10px">
@@ -368,7 +368,7 @@ class Component extends DCLogic {
       catOpts: ['ap', 'af'].map(k => ({ name: CAT[k], count: bc.filter(p => p.cat === k).length, ...box(f.cats.includes(k)), toggle: () => this.toggle('cats', k) })),
       matOpts: MATS.map(m => ({ name: m, count: bm.filter(p => p.mat === m).length, ...box(f.mats.includes(m)), toggle: () => this.toggle('mats', m) })).filter(o => o.count || f.mats.includes(o.name)),
       finOpts: FIN.map(x => ({ name: x.n, c: x.c, ring: f.fins.includes(x.n) ? '0 0 0 2px #EFEFEF, 0 0 0 3.5px #1C1C1C' : 'inset 0 0 0 1px rgba(28,28,28,.08)', toggle: () => this.toggle('fins', x.n) })),
-      hasFinOpts: PRODUCTS.some(p => p.fins.length),
+      hasFinOpts: PRODUCTS.some(p => p.fins.length), hasMatOpts: PRODUCTS.some(p => p.mat),
       finLabel: f.fins.length ? f.fins.join(', ') : 'Any finish',
       chips, hasChips: chips.length > 0, chipsLabel: chips.length ? 'Filtered by' : 'Showing everything',
       clearAll: () => this.setState({ f: { cols: [], cats: [], mats: [], fins: [], newOnly: false }, q: '' }),

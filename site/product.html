@@ -166,9 +166,16 @@ input::placeholder{color:#8D8E8E}
       <span data-rv="" style="font-size:14px;color:#676868;font-variant-numeric:tabular-nums">{{ compTotal }} components</span>
     </div>
     <p data-rv="" style="margin:0 0 clamp(28px,3vw,44px);max-width:560px;font-size:15px;line-height:1.55;color:#676868">One complete system. Everything below is supplied together for this series.</p>
+    <sc-if value="{{ multiSec }}" hint-placeholder-val="{{ false }}">
+    <div data-rv="" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 clamp(28px,3vw,44px)">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="6">
+        <a href="#{{ g.anchor }}" style="flex:none;padding:9px 15px;border-radius:999px;border:1px solid #DCDDDD;background:#F7F7F7;font-size:13px;font-weight:450;white-space:nowrap;transition:background .3s,color .3s,border-color .3s" style-hover="background:#1C1C1C;color:#EFEFEF;border-color:#1C1C1C">{{ g.title }} <span style="opacity:.5;margin-left:4px">{{ g.count }}</span></a>
+      </sc-for>
+    </div>
+    </sc-if>
     <div style="display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)">
       <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
-        <div style="display:flex;flex-direction:column;gap:18px">
+        <div id="{{ g.anchor }}" style="display:flex;flex-direction:column;gap:18px;scroll-margin-top:90px">
           <sc-if value="{{ g.showHead }}" hint-placeholder-val="{{ true }}">
           <div data-rv="" style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-top:14px;border-top:1px solid #1C1C1C">
             <span style="font-size:17px;font-weight:500;letter-spacing:-.02em">{{ g.title }}</span>
@@ -193,6 +200,23 @@ input::placeholder{color:#8D8E8E}
     </div>
   </section>
   </sc-if>
+
+  <section style="padding-top:clamp(80px,9vw,120px)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(12px,1.4vw,20px)">
+      <sc-if value="{{ hasPrev }}" hint-placeholder-val="{{ true }}">
+      <a href="product.html?id={{ prevS.id }}" data-hov="" data-rv="" style="display:flex;gap:18px;align-items:center;padding:14px;border-radius:4px;background:#E7E8E8;transition:background .3s" style-hover="background:#DDDEDE">
+        <img data-src="{{ prevS.img }}" alt="" loading="lazy" data-gen="" style="width:84px;height:104px;object-fit:cover;border-radius:3px;opacity:0;transition:opacity .6s;flex:none;background:#D3D4D4">
+        <span style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:12px;color:#8D8E8E">← Previous series · {{ prevS.code }}</span><span style="font-size:18px;font-weight:500;letter-spacing:-.02em;line-height:1.2">{{ prevS.name }}</span></span>
+      </a>
+      </sc-if>
+      <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+      <a href="product.html?id={{ nextS.id }}" data-hov="" data-rv="" style="display:flex;gap:18px;align-items:center;justify-content:space-between;padding:14px;border-radius:4px;background:#E7E8E8;transition:background .3s" style-hover="background:#DDDEDE">
+        <span style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:12px;color:#8D8E8E">Next series · {{ nextS.code }} →</span><span style="font-size:18px;font-weight:500;letter-spacing:-.02em;line-height:1.2">{{ nextS.name }}</span></span>
+        <img data-src="{{ nextS.img }}" alt="" loading="lazy" data-gen="" style="width:84px;height:104px;object-fit:cover;border-radius:3px;opacity:0;transition:opacity .6s;flex:none;background:#D3D4D4">
+      </a>
+      </sc-if>
+    </div>
+  </section>
 
   <section style="padding-top:clamp(120px,14vw,180px)">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(28px,3vw,40px)">
@@ -355,7 +379,8 @@ class Component extends DCLogic {
     return {
       ...MOBV(this), ...NAV(''), showImages, enqCount: this.state.enq, pd,
       ...(() => { const cs = this.state.comps, secs = cs ? cs.sections : []; return { hasComps: !!(cs && cs.total), compTotal: cs ? cs.total : 0, compLabel: cs ? 'See what\'s included · ' + cs.total + ' components' : '', secCount: secs.length, multiSec: secs.length > 1,
-        groups: secs.map(g => ({ title: g.title, showHead: secs.length > 1 || !!g.title, count: g.items.length, items: g.items.map((it, i) => ({ ...it, delay: (i % 6) * 40, hasCode: !!it.code })) })) }; })(),
+        groups: secs.map((g, gi) => ({ anchor: 'grp-' + gi, title: g.title, showHead: secs.length > 1 || !!g.title, count: g.items.length, items: g.items.map((it, i) => ({ ...it, delay: (i % 6) * 40, hasCode: !!it.code })) })) }; })(),
+      ...(() => { const i = PRODUCTS.findIndex(x => x.id === p.id), a = PRODUCTS[i - 1], b = PRODUCTS[i + 1], f = x => x ? { id: x.id, name: x.name, code: x.code, img: x.img } : null; return { hasPrev: !!a, hasNext: !!b, prevS: f(a) || {}, nextS: f(b) || {} }; })(),
       related: PRODUCTS.filter(x => x.col === p.col && x.id !== p.id).slice(0, 4).map((x, i) => CARD(x, i)),
       qty: this.state.qty,
       qtyDown: () => this.setState(s => ({ qty: Math.max(1, s.qty - 1) })),

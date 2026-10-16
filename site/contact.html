@@ -47,7 +47,7 @@ input::placeholder{color:#8D8E8E}
       <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
       <a href="products.html" style="opacity:{{ navProducts }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navProductsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Products</a>
       <a href="index.html#collections" style="opacity:{{ navCollections }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCollectionsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Collections</a>
-      <a href="index.html#catalogues" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
+      <a href="catalogues.html" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
       <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
       </sc-if>
       <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
@@ -193,7 +193,7 @@ input::placeholder{color:#8D8E8E}
         <div style="display:flex;flex-direction:column;gap:12px">
           <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Explore</span>
           <a href="products.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">All products</a>
-          <a href="index.html#catalogues" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Catalogues</a>
+          <a href="catalogues.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Catalogues</a>
           <a href="index.html#collections" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Collections</a>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
@@ -251,7 +251,7 @@ const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc',
 const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
 const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
 const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
-const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'index.html#catalogues'], ['About', 'about.html'], ['Contact', 'contact.html']];
+const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'catalogues.html'], ['About', 'about.html'], ['Contact', 'contact.html']];
 const MOBV = c => {
   const o = !!c.state.menu, at = 'circle(%r at calc(100% - 50px) 42px)';
   const set = v => { c.setState({ menu: v }); try { document.body.style.overflow = v ? 'hidden' : ''; } catch (e) {} };

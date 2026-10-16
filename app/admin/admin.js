@@ -129,7 +129,7 @@
   }
 
   /* ---------- shell ---------- */
-  var NAV = [['dashboard', 'Overview'], ['categories', 'Categories'], ['products', 'Products'], ['home', 'Home page'], ['downloads', 'Downloads'],
+  var NAV = [['dashboard', 'Overview'], ['categories', 'Categories'], ['products', 'Products'], ['home', 'Home page'], ['downloads', 'Catalogues'],
     ['enquiries', 'Enquiries'], ['contact', 'Contact details'], ['pages', 'About & legal'], ['settings', 'Settings']];
 
   function render() {
@@ -751,15 +751,15 @@
   /* ---------- downloads (PDF links + cover images) ---------- */
   views.downloads = function (main) {
     var list = h('div', { class: 'list' });
-    main.appendChild(header('Downloads', 'Catalogues and brochures shown on the home page. Upload each PDF to Google Drive, then paste its link here, so the website stays fast.',
-      h('button', { class: 'btn green', onclick: function () { edit(); } }, '+ Add a PDF')));
+    main.appendChild(header('Catalogues', 'These appear on the Catalogues page (and the first few on the home page). Upload each PDF to Google Drive, then paste its link here, so the website stays fast.',
+      h('div', { class: 'row' }, h('a', { class: 'btn ghost', href: '/catalogues.html', target: '_blank', rel: 'noopener' }, 'View page'), h('button', { class: 'btn green', onclick: function () { edit(); } }, '+ Add a catalogue'))));
     main.appendChild(h('div', { class: 'card small', style: 'margin-bottom:18px;line-height:1.6' },
-      h('b', null, 'How to add a PDF: '), '1) Upload the file to Google Drive. 2) Right-click it → Share → set “Anyone with the link” → Copy link. 3) Click “Add a PDF” here, paste the link and upload a cover picture.'));
+      h('b', null, 'How to add a catalogue: '), '1) Upload the PDF to Google Drive. 2) Right-click it → Share → set “Anyone with the link” → Copy link. 3) Click “Add a catalogue” here, give it a title, paste the link and upload a cover picture.'));
     main.appendChild(list);
     var docs = [];
     function paint() {
       clear(list);
-      if (!docs.length) list.appendChild(h('div', { class: 'empty' }, 'No downloads yet.'));
+      if (!docs.length) list.appendChild(h('div', { class: 'empty' }, 'No catalogues yet. Add your first one above.'));
       docs.forEach(function (d, i) {
         var move = function (dir) {
           var ids = docs.map(function (x) { return x.id; }), j = i + dir; if (j < 0 || j >= ids.length) return;
@@ -787,14 +787,14 @@
       var title = h('input', { type: 'text', value: d.title, maxlength: 120, placeholder: 'e.g. Aluminium Profile Catalogue 2026' });
       var note = h('input', { type: 'text', value: d.note, maxlength: 200, placeholder: 'e.g. 94 pages · PDF' });
       var url = h('input', { type: 'text', value: d.url, placeholder: 'https://drive.google.com/file/d/…/view' });
-      var pic = imagePicker(d.cover, 'Cover image', 'A picture of the first page works well (portrait, 4:5).');
+      var pic = imagePicker(d.cover, 'Cover image', 'A picture of the catalogue’s front page works well (portrait, 4:5).');
       var cat = h('select', null, h('option', { value: '' }, 'Only in the Downloads section'),
         (state.cats || []).map(function (k) { return h('option', { value: k.key, selected: k.key === d.catalogue_key }, 'Also link from the “' + k.name + '” card'); }));
       var vis = toggle('Visible on the website', d.active);
-      drawer(isNew ? 'Add a PDF' : 'Edit download', [field('Title', title), field('Short note (optional)', note), field('PDF link', url, 'A Google Drive share link works best. People can view it online or download it.'), pic,
-        field('Where to show it', cat, 'The catalogue cards on the home page have a “Download PDF” button; choose one to connect it.'), vis], function () {
+      drawer(isNew ? 'Add a catalogue' : 'Edit catalogue', [field('Title', title), field('Short note (optional)', note), field('Catalogue link (PDF)', url, 'A Google Drive share link works best. Visitors can view it online or download it.'), pic,
+        field('Connect to a printed catalogue (optional)', cat, 'Pick one to also show a “Download PDF” button on that catalogue’s card on the Catalogues and home pages.'), vis], function () {
         var body = { title: title.value, note: note.value, url: url.value, cover: pic.get(), catalogue_key: cat.value, active: vis.input.checked };
-        if (!body.title.trim()) return Promise.reject(new Error('Please add a title'));
+        if (!body.title.trim()) return Promise.reject(new Error('Please add a title for the catalogue'));
         if (!/^https?:\/\//i.test(body.url.trim())) return Promise.reject(new Error('Paste the full link, starting with https://'));
         return api('/documents' + (isNew ? '' : '/' + d.id), isNew ? 'POST' : 'PUT', body).then(function () { toast('Saved'); return refresh(); });
       });

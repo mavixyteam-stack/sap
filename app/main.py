@@ -1077,7 +1077,7 @@ def robots(request: Request):
 def sitemap(request: Request):
     d = build_public_data()
     base = base_url(request, d["site"])
-    urls = [("/", "1.0"), ("/products.html", "0.9"), ("/about.html", "0.6"), ("/contact.html", "0.6"),
+    urls = [("/", "1.0"), ("/products.html", "0.9"), ("/catalogues.html", "0.8"), ("/about.html", "0.6"), ("/contact.html", "0.6"),
             ("/privacy-policy", "0.2"), ("/cookie-policy", "0.2"), ("/terms", "0.2")]
     urls += [("/products.html?c=" + c["id"], "0.7") for c in d["collections"]]
     urls += [("/product.html?id=" + p["id"], "0.8") for p in d["products"]]

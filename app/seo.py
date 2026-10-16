@@ -120,6 +120,17 @@ def page_meta(path: str, query: dict, data: dict, base: str, comps: Optional[lis
         if comps:
             sections = "<h2>What’s included</h2><ul>%s</ul>" % "".join("<li>%s %s</li>" % (esc(c["name"]), esc(c["code"])) for c in comps)
         m["body"] = "<h1>%s</h1><p>%s</p><p>Series %s · Catalogue pages %s</p>%s" % (esc(pr["name"]), esc(m["desc"]), esc(pr["code"]), esc(pr["pages"]), sections)
+    elif p == "/catalogues":
+        docs = data.get("documents", [])
+        m["title"] = "Catalogues \u2014 Download SAP Hardware PDF Catalogues"
+        m["desc"] = clip("Browse the SAP Hardware range online, grouped like the printed catalogues, or view and download the catalogue PDFs: aluminium profiles, glass systems, sliding fittings, door hardware, kitchen and wardrobe solutions.", 158)
+        m["canonical"] = base + "/catalogues.html"
+        m["crumbs"] = [("Catalogues", m["canonical"])]
+        m["jsonld"] = [{"@type": "CollectionPage", "name": m["title"], "url": m["canonical"], "isPartOf": {"@id": base + "/#site"}},
+                       {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": d["title"], "url": d["view"]} for i, d in enumerate(docs)]}]
+        m["body"] = "<h1>SAP Hardware catalogues</h1><p>%s</p><ul>%s</ul><h2>Browse online</h2><ul>%s</ul>" % (
+            esc(m["desc"]), "".join('<li><a href="%s">%s</a> \u2014 %s</li>' % (esc(d["view"]), esc(d["title"]), esc(d["note"])) for d in docs),
+            "".join('<li><a href="%s/products.html?cat=%s">%s</a> (%s series)</li>' % (base, esc(k["key"]), esc(k["name"]), k["count"]) for k in data.get("catalogues", [])))
     elif p == "/about":
         f = data.get("founder") or {}
         m["title"] = "About SAP Hardware — Founded in 2013 by %s" % f.get("name", "Jitendra Agarwal")
@@ -216,9 +227,9 @@ def apply(html_text: str, m: dict, site: dict, nav: str = "") -> str:
 
 
 def nav_links(base: str) -> str:
-    return ('<nav><a href="%s/">Home</a> · <a href="%s/products.html">Products</a> · <a href="%s/about.html">About</a> · '
+    return ('<nav><a href="%s/">Home</a> · <a href="%s/products.html">Products</a> · <a href="%s/catalogues.html">Catalogues</a> · <a href="%s/about.html">About</a> · '
             '<a href="%s/contact.html">Contact</a> · <a href="%s/privacy-policy">Privacy</a> · <a href="%s/cookie-policy">Cookies</a> · '
-            '<a href="%s/terms">Terms</a></nav>') % ((base,) * 7)
+            '<a href="%s/terms">Terms</a></nav>') % ((base,) * 8)
 
 
 # ----------------------------------------------------------------------------- share images

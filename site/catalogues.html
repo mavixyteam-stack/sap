@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>About — SAP Hardware</title>
+<meta name="description" content="SAP Hardware by Jagannath Hardware Pvt. Ltd.: display centres in Bengaluru, Chennai, Surat and Jodhpur, and over 100 distributors across India.">
+<meta property="og:title" content="About — SAP Hardware">
+<meta property="og:description" content="SAP Hardware by Jagannath Hardware Pvt. Ltd.: display centres in Bengaluru, Chennai, Surat and Jodhpur, and over 100 distributors across India.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/scenes/hero-glass.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#EFEFEF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&amp;display=swap" rel="stylesheet">
+<style>
+html{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,[data-menu]::-webkit-scrollbar{display:none;width:0;height:0}
+html,body{margin:0;padding:0;background:#EFEFEF;color:#1C1C1C;-webkit-font-smoothing:antialiased;font-family:'Geist',system-ui,sans-serif}
+*{box-sizing:border-box}
+a{color:#1C1C1C;text-decoration:none}
+a:hover{color:#1C1C1C}
+::selection{background:#00A65B;color:#1C1C1C}
+input,button,select{font-family:inherit;color:inherit}
+input::placeholder{color:#8D8E8E}
+</style>
+<script>try{if(sessionStorage.getItem("sapNav")){sessionStorage.removeItem("sapNav");var c=document.createElement("div");c.id="sap-cover";c.style.cssText="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;display:flex;align-items:center;justify-content:center";c.innerHTML="<img src=\"assets/sap-logo-light.svg\" alt=\"\" style=\"width:120px;opacity:.9\">";(document.body||document.documentElement).appendChild(c);setTimeout(function(){c.remove()},3000);}}catch(e){}</script>
+<script src="site.js"></script>
+</helmet>
+
+<header data-hdr="" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(239,239,239,.82);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .3s">
+  <div style="max-width:1440px;margin:0 auto;padding:16px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:space-between;gap:24px">
+    <a href="index.html" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#676868">Architectural &amp; Furniture Fittings</span></a>
+    <nav style="display:flex;align-items:center;gap:clamp(10px,2.6vw,36px);font-size:14px;font-weight:450">
+      <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+      <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
+      <a href="products.html" style="opacity:{{ navProducts }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navProductsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Products</a>
+      <a href="index.html#collections" style="opacity:{{ navCollections }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCollectionsU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Collections</a>
+      <a href="catalogues.html" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
+      <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
+      </sc-if>
+      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
+      <sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleMenu }}" aria-label="Open menu" style-active="transform:scale(.94)" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 14px;border-radius:999px;border:1px solid #C8C9C9;background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Menu<span style="width:28px;height:28px;border-radius:999px;background:#1C1C1C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="width:12px;height:1.5px;background:#EFEFEF"></span><span style="width:12px;height:1.5px;background:#EFEFEF"></span></span></button></sc-if>
+    </nav>
+  </div>
+  <div data-progress="" style="position:absolute;left:0;right:0;bottom:0;height:2px;background:#00A65B;transform:scaleX(0);transform-origin:left"></div>
+</header>
+
+<div data-menu="" aria-hidden="{{ menuHidden }}" style="position:fixed;inset:0;z-index:2147482000;background:#1C1C1C;color:#EFEFEF;clip-path:{{ mClip }};-webkit-clip-path:{{ mClip }};transition:{{ mClipT }};pointer-events:{{ mPe }};display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain">
+  <div style="position:fixed;width:140vmax;height:140vmax;right:-70vmax;top:-70vmax;border-radius:999px;background:#00A65B;transform:{{ mBlobTf }};transition:{{ mBlobT }};pointer-events:none"></div>
+  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(20px,4vw,56px)">
+    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></a>
+    <button onClick="{{ closeMenu }}" aria-label="Close menu" style-active="transform:scale(.9)" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 16px;border-radius:999px;border:1px solid #3A3B3B;background:transparent;color:#EFEFEF;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Close<span style="width:32px;height:32px;border-radius:999px;background:#00A65B;color:#1C1C1C;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transform:{{ mXTf }};transition:transform .9s cubic-bezier(.2,1.3,.3,1) .35s">×</span></button>
+  </div>
+  <nav style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:24px clamp(20px,4vw,56px)">
+    <sc-for list="{{ menuItems }}" as="it" hint-placeholder-count="6">
+      <a href="{{ it.href }}" onClick="{{ closeMenu }}" style="display:block;overflow:hidden;padding:2px 0 6px;transition:transform .5s cubic-bezier(.2,.7,.2,1)" style-hover="transform:translateX(10px)" style-active="transform:translateX(10px)">
+        <span style="display:flex;align-items:flex-start;gap:14px;transform:{{ it.tf }};transition:{{ it.tt }};transform-origin:left bottom">
+          <span style="font-size:13px;font-weight:500;color:#00A65B;padding-top:.9em;font-variant-numeric:tabular-nums">{{ it.num }}</span>
+          <span style="font-size:clamp(46px,13vw,96px);font-weight:500;letter-spacing:-.055em;line-height:1;color:{{ it.col }}">{{ it.label }}</span>
+          <span style="width:12px;height:12px;border-radius:999px;background:{{ it.dot }};margin-top:.7em;flex:none"></span>
+        </span>
+      </a>
+    </sc-for>
+  </nav>
+  <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:24px clamp(20px,4vw,56px) 28px;border-top:1px solid #2E2F2F;margin:0 clamp(20px,4vw,56px);padding-left:0;padding-right:0;opacity:{{ mFade }};transform:{{ mFadeTf }};transition:{{ mFadeT }}">
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:15px">
+      <a href="tel:+918088909103" style="color:#EFEFEF;font-weight:500">+91 80889 09103</a>
+      <a href="mailto:saphardware2008@gmail.com" style="color:#A2A3A3">saphardware2008@gmail.com</a>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <sc-for list="{{ menuSocials }}" as="so" hint-placeholder-count="4"><a href="#" style="padding:8px 12px;border-radius:999px;border:1px solid #3A3B3B;color:#D6D7D7;font-size:13px">{{ so }}</a></sc-for>
+    </div>
+  </div>
+</div>
+
+
+<main data-screen-label="Catalogues" style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);padding-top:clamp(140px,18vh,200px)">
+  <div data-rv="" style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868"><span>Catalogues</span><span>{{ heroMeta }}</span></div>
+  <h1 style="margin:clamp(40px,6vw,80px) 0 0;font-size:clamp(48px,8.4vw,136px);font-weight:500;letter-spacing:-.055em;line-height:.92"><span style="display:block;overflow:hidden;padding-bottom:.08em"><span data-rv="line" data-d="80" style="display:block">Every drawing,</span></span><span style="display:block;overflow:hidden;padding-bottom:.08em"><span data-rv="line" data-d="200" style="display:block;color:#A2A3A3">every dimension.</span></span></h1>
+  <div style="display:flex;justify-content:flex-end;margin-top:clamp(40px,6vw,72px)">
+    <p data-rv="" data-d="300" style="margin:0;max-width:560px;font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:#3A3B3B;text-wrap:pretty">Browse the full SAP Hardware range online, grouped exactly like the printed catalogues, or open and download the PDFs for offline reference.</p>
+  </div>
+</main>
+
+<section style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(80px,10vw,140px)">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:clamp(12px,1.4vw,20px)">
+    <sc-for list="{{ cats }}" as="k" hint-placeholder-count="2">
+      <div data-rv="" data-d="{{ k.delay }}" style="display:flex;flex-direction:column;justify-content:space-between;gap:clamp(48px,7vw,96px);min-height:clamp(300px,32vw,420px);padding:clamp(24px,3vw,44px);border-radius:4px;background:#00A65B;color:#1C1C1C">
+        <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;font-variant-numeric:tabular-nums"><span>{{ k.tag }}</span><span>pp. {{ k.pages }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <span style="font-size:clamp(32px,4vw,56px);font-weight:500;letter-spacing:-.045em;line-height:1">{{ k.name }}</span>
+          <span style="font-size:15px;opacity:.8">{{ k.count }} series, each a complete system with every component listed</span>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="products.html?cat={{ k.id }}" style="padding:13px 20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:14px;font-weight:500" style-hover="color:#EFEFEF;background:#000">Browse series</a>
+            <sc-if value="{{ k.hasDl }}" hint-placeholder-val="{{ true }}"><a href="{{ k.dl }}" target="_blank" rel="noopener" style="padding:13px 20px;border-radius:999px;border:1px solid rgba(28,28,28,.35);font-size:14px;font-weight:500" style-hover="border-color:#1C1C1C">Download PDF ↓</a></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="pdfs" style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(120px,16vw,200px)">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(32px,4vw,56px)">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <span data-rv="" style="font-size:13px;color:#676868">Download &amp; view</span>
+      <h2 data-rv="" data-d="80" style="margin:0;font-size:clamp(34px,4.4vw,64px);font-weight:500;letter-spacing:-.045em;line-height:1">Catalogue PDFs.</h2>
+    </div>
+    <p data-rv="" style="margin:0;max-width:340px;font-size:15px;line-height:1.55;color:#676868">Opens in a new tab. Save a copy to keep it handy on site visits.</p>
+  </div>
+  <sc-if value="{{ hasDocs }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:clamp(20px,2vw,32px)">
+    <sc-for list="{{ docs }}" as="d" hint-placeholder-count="4">
+      <div data-rv="" data-d="{{ d.delay }}" style="display:flex;flex-direction:column;gap:16px">
+        <a href="{{ d.view }}" target="_blank" rel="noopener" data-hov="" style="display:block;position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
+          <sc-if value="{{ d.hasCover }}" hint-placeholder-val="{{ true }}"><img data-src="{{ d.cover }}" alt="{{ d.title }} — cover" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.04)"></sc-if>
+          <span style="position:absolute;left:12px;top:12px;padding:5px 9px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:11px;font-weight:600;letter-spacing:.04em">PDF</span>
+        </a>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:18px;font-weight:500;letter-spacing:-.025em;line-height:1.25">{{ d.title }}</span>
+          <span style="font-size:13px;color:#676868">{{ d.note }}</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="{{ d.view }}" target="_blank" rel="noopener" style="padding:11px 18px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:13px;font-weight:500" style-hover="color:#EFEFEF;background:#000">View online</a>
+          <a href="{{ d.download }}" target="_blank" rel="noopener" style="padding:11px 18px;border-radius:999px;border:1px solid rgba(28,28,28,.2);font-size:13px;font-weight:500" style-hover="border-color:#1C1C1C">Download ↓</a>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+  <sc-if value="{{ noDocs }}" hint-placeholder-val="{{ false }}">
+  <div data-rv="" style="padding:clamp(40px,6vw,80px);border-radius:4px;background:#E7E8E8;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+    <span style="font-size:clamp(22px,2.4vw,30px);font-weight:500;letter-spacing:-.035em">PDF catalogues are on their way.</span>
+    <span style="font-size:15px;line-height:1.6;color:#676868;max-width:480px">In the meantime you can browse every series online, or ask our team to send you the latest catalogue.</span>
+    <a href="contact.html" style="margin-top:8px;padding:13px 20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:14px;font-weight:500" style-hover="color:#EFEFEF;background:#000">Request a catalogue</a>
+  </div>
+  </sc-if>
+</section>
+
+<section style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(80px,10vw,140px)">
+  <div data-rv="" style="display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding:clamp(24px,3vw,40px) 0;border-top:1px solid #1C1C1C">
+    <span style="font-size:clamp(20px,2.2vw,28px);font-weight:500;letter-spacing:-.03em;max-width:560px;line-height:1.2">Prefer a printed copy? Visit a display centre or ask our team.</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="about.html#centres" style="padding:13px 20px;border-radius:999px;border:1px solid #1C1C1C;font-size:14px;font-weight:500">Find a display centre</a>
+      <a href="contact.html" style="padding:13px 20px;border-radius:999px;background:#00A65B;font-size:14px;font-weight:500" style-hover="color:#1C1C1C;background:#22B56E">Contact us</a>
+    </div>
+  </div>
+</section>
+
+<footer id="contact" style="margin-top:clamp(120px,16vw,200px);background:#1C1C1C;color:#EFEFEF">
+  <div style="max-width:1440px;margin:0 auto;padding:clamp(64px,8vw,112px) clamp(20px,4vw,56px) 28px;display:flex;flex-direction:column;gap:clamp(64px,8vw,112px)">
+    <div style="display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:28px;max-width:520px">
+        <h2 style="margin:0;font-size:clamp(34px,4.4vw,60px);font-weight:500;letter-spacing:-.045em;line-height:1">Specifying a project?</h2>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Tell us about your project and our team will come back with drawings, finishes and project support.</p>
+        <a href="contact.html" data-mag="" style-active="transform:scale(.97)" style="transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s;align-self:flex-start;padding:15px 24px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-size:15px;font-weight:500" style-hover="color:#1C1C1C;background:#22B56E">Start an enquiry</a>
+      </div>
+      <div style="flex:1 1 300px;max-width:620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:32px 48px;font-size:14px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Collections</span>
+          <sc-for list="{{ collections }}" as="c" hint-placeholder-count="8"><a href="products.html?c={{ c.id }}" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">{{ c.name }}</a></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Explore</span>
+          <a href="products.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">All products</a>
+          <a href="catalogues.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Catalogues</a>
+          <a href="index.html#collections" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Collections</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="color:#676868;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Company</span>
+          <a href="about.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">About us</a>
+          <a href="contact.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Contact</a>
+          <a href="contact.html?type=dist" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Distributorship</a>
+          <a href="privacy-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Privacy Policy</a>
+          <a href="cookie-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Cookie Policy</a>
+          <a href="terms" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div data-rv="" style="display:flex;flex-direction:column;gap:clamp(12px,1.6vw,20px)"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block"><span style="font-size:clamp(11px,1.3vw,17px);font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></div>
+    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868;border-top:1px solid #2A2A2A;padding-top:24px">
+      <span>© 2026 SAP — A Quality Product</span><span>Architectural Furniture Fitting</span>
+    </div>
+  </div>
+</footer>
+
+<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"><span style="font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#8D8E8E;white-space:nowrap">Architectural &amp; Furniture Fittings</span></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+// Content comes from the CMS database (injected by the server as window.__SAP_DATA).
+const D = window.__SAP_DATA || { collections: [], finishes: [], catalogues: [], products: [], slides: [], featured: [], centers: [], offices: [] };
+const PH = 'assets/placeholder.svg';
+const COLS = D.collections.map(c => ({ id: c.id, name: c.name, blurb: c.blurb, q: c.q, mats: c.mats }));
+const FIN = D.finishes;
+const CAT = {};
+D.catalogues.forEach(k => { CAT[k.key] = k.name; });
+const SCENE = {};
+D.collections.forEach(c => { SCENE[c.id] = c.scene || ''; });
+const FINC = {};
+FIN.forEach(f => { FINC[f.n] = f.c; });
+const CNT = {};
+const PRODUCTS = D.products.filter(p => COLS.some(c => c.id === p.col)).map((p, i) => {
+  const col = COLS.find(c => c.id === p.col);
+  let fins = p.fins.filter(n => FINC[n]).map(n => ({ n, c: FINC[n] }));
+  const shot = CNT[p.col] = (CNT[p.col] ?? -1) + 1;
+  return {
+    id: p.id, name: p.name, col: p.col, colName: col.name, cat: p.cat, catName: CAT[p.cat] || '', pages: p.pages, ord: i,
+    code: p.code, no: p.no || 0, n: p.n || 0, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
+    img: p.img || SCENE[p.col] || PH, gallery: (p.gallery || []).filter(Boolean), desc: p.desc || ''
+  };
+});
+const SHOT = (c, n) => { const l = PRODUCTS.filter(p => p.col === c); return l.length ? l[n % l.length].img : (SCENE[c] || PH); };
+const SLIDE_MS = 6500;
+const SLIDES = D.slides.length
+  ? D.slides.map(s => ({ id: s.col || '', col: s.label, title: s.title, img: s.img }))
+  : [{ id: '', col: 'SAP Hardware', title: 'Architectural furniture fitting.', img: PH }];
+const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc', 'Leather'].filter(m => PRODUCTS.some(p => p.mat === m))
+  .concat([...new Set(PRODUCTS.map(p => p.mat).filter(m => m))].filter(m => !['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc', 'Leather'].includes(m)));
+
+
+const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
+const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
+const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
+const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'catalogues.html'], ['About', 'about.html'], ['Contact', 'contact.html']];
+const MOBV = c => {
+  const o = !!c.state.menu, at = 'circle(%r at calc(100% - 50px) 42px)';
+  const set = v => { c.setState({ menu: v }); try { document.body.style.overflow = v ? 'hidden' : ''; } catch (e) {} };
+  let here = 'index.html'; try { here = location.pathname.split('/').pop() || 'index.html'; } catch (e) {}
+  const n = MENU_ITEMS.length;
+  return {
+    hasEnq: (c.state.enq || 0) > 0, mob: !!c.state.mob, desk: !c.state.mob, menuOpen: o, menuHidden: o ? 'false' : 'true',
+    toggleMenu: () => set(!o), closeMenu: () => set(false), menuLabel: 'Menu',
+    stickPos: c.state.mob ? 'static' : 'sticky', asideMax: c.state.mob ? '100%' : '260px',
+    mClip: at.replace('%r', o ? '150%' : '0%'),
+    mClipT: o ? 'clip-path 1s cubic-bezier(.76,0,.24,1)' : 'clip-path .8s cubic-bezier(.76,0,.24,1) .35s',
+    mPe: o ? 'auto' : 'none',
+    mBlobTf: o ? 'scale(0)' : 'scale(1)',
+    mBlobT: o ? 'transform 1.1s cubic-bezier(.76,0,.24,1) .12s' : 'transform .6s cubic-bezier(.76,0,.24,1) .2s',
+    mXTf: o ? 'rotate(0deg) scale(1)' : 'rotate(-180deg) scale(0)',
+    mFade: o ? '1' : '0', mLogoD: o ? '.6s' : '0s',
+    mFadeTf: o ? 'none' : 'translateY(24px)',
+    mFadeT: o ? 'opacity .7s ease .85s, transform .9s cubic-bezier(.2,.7,.2,1) .85s' : 'opacity .2s ease, transform .3s ease',
+    menuItems: MENU_ITEMS.map(([label, href], i) => ({ label, href, num: '0' + (i + 1),
+      tf: o ? 'translateY(0) rotate(0deg) skewY(0deg)' : 'translateY(115%) rotate(7deg) skewY(4deg)',
+      tt: o ? 'transform 1.1s cubic-bezier(.2,.9,.1,1) ' + (380 + i * 75) + 'ms' : 'transform .5s cubic-bezier(.7,0,.84,0) ' + ((n - 1 - i) * 35) + 'ms',
+      col: here === href ? '#00A65B' : '#EFEFEF', dot: here === href ? '#00A65B' : 'transparent' })),
+    menuSocials: ['Facebook', 'Instagram', 'YouTube', 'WhatsApp']
+  };
+};
+const QS = k => { try { return new URLSearchParams(location.search).get(k); } catch (e) { return null; } };
+
+
+const CENTERS = D.centers;
+const TEL = p => 'tel:' + p.replace(/[^\d+]/g, '');
+const CENTERS_V = () => CENTERS.map((c, i) => ({ ...c, num: '0' + (i + 1), delay: i * 80, tel: TEL(c.phone), map: c.map ? c.map : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.addr) }));
+
+const CATV = () => {
+  const docs = D.documents || [];
+  return {
+    heroMeta: D.catalogues.length + ' printed catalogues' + (docs.length ? ' \u00b7 ' + docs.length + ' PDF' + (docs.length === 1 ? '' : 's') : ''),
+    cats: D.catalogues.map((k, i) => { const dd = docs.find(x => x.cat === k.key); return { id: k.key, delay: i * 100, tag: 'Catalogue ' + String(i + 1).padStart(2, '0'), name: k.name, pages: k.pages, count: k.count, hasDl: !!dd, dl: dd ? dd.download : '#' }; }),
+    hasDocs: docs.length > 0, noDocs: docs.length === 0,
+    docs: docs.map((d, i) => ({ ...d, hasCover: !!d.cover, delay: (i % 4) * 70 }))
+  };
+};
+class Component extends DCLogic {
+  state = { enq: ENQ0() };
+  componentDidMount() {
+    this._enq = e => this.setState({ enq: e.detail });
+    window.addEventListener('sap-enq', this._enq);
+    this._rs = () => { const m = innerWidth < 820; if (m !== this.state.mob) { this.setState({ mob: m, menu: m ? this.state.menu : false }); if (!m) document.body.style.overflow = ''; } };
+    this._rs(); window.addEventListener('resize', this._rs);
+    const go = () => window.SAP ? (SAP.fx.mount(), SAP.fx.scan()) : setTimeout(go, 40);
+    go();
+    if (this.init) this.init();
+  }
+  componentDidUpdate(pp, ps) { if (window.SAP) SAP.fx.scan(); if (this.updated) this.updated(ps); }
+  componentWillUnmount() { window.removeEventListener('sap-enq', this._enq); window.removeEventListener('resize', this._rs); clearInterval(this.si); clearTimeout(this.tt); clearTimeout(this.at); }
+  flash(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2400); }
+
+
+  renderVals() {
+    return {
+      ...MOBV(this), ...NAV('Catalogues'), ...CATV(), enqCount: this.state.enq, collections: COLS,
+      stats: [
+        { n: 100, suf: '+', label: 'Distributors nationwide', sub: 'Making SAP products readily available across the country.', delay: 0 },
+        { n: D.centers.length, suf: '', label: 'Display centres', sub: D.centers.map(c => c.city).join(', ') + '.', delay: 100 },
+        { n: D.offices.length, suf: '', label: 'Offices', sub: D.offices.map(o => o.tag.split('·').pop().trim()).join(', ') + '.', delay: 200 }
+      ],
+      centers: CENTERS_V(),
+      hasFounder: !!(D.founder && D.founder.name), fd: D.founder || {},
+    };
+  }
+}
+</script>
+</body>
+</html>

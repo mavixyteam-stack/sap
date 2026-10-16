@@ -89,29 +89,11 @@ input::placeholder{color:#8D8E8E}
   <div data-rv="" style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868"><span>Catalogues</span><span>{{ heroMeta }}</span></div>
   <h1 style="margin:clamp(40px,6vw,80px) 0 0;font-size:clamp(48px,8.4vw,136px);font-weight:500;letter-spacing:-.055em;line-height:.92"><span style="display:block;overflow:hidden;padding-bottom:.08em"><span data-rv="line" data-d="80" style="display:block">Every drawing,</span></span><span style="display:block;overflow:hidden;padding-bottom:.08em"><span data-rv="line" data-d="200" style="display:block;color:#A2A3A3">every dimension.</span></span></h1>
   <div style="display:flex;justify-content:flex-end;margin-top:clamp(40px,6vw,72px)">
-    <p data-rv="" data-d="300" style="margin:0;max-width:560px;font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:#3A3B3B;text-wrap:pretty">Browse the full SAP Hardware range online, grouped exactly like the printed catalogues, or open and download the PDFs for offline reference.</p>
+    <p data-rv="" data-d="300" style="margin:0;max-width:560px;font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:#3A3B3B;text-wrap:pretty">Open and download the SAP Hardware catalogues for offline reference, and keep a copy handy on site visits.</p>
   </div>
 </main>
 
-<section style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(80px,10vw,140px)">
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:clamp(12px,1.4vw,20px)">
-    <sc-for list="{{ cats }}" as="k" hint-placeholder-count="2">
-      <div data-rv="" data-d="{{ k.delay }}" style="display:flex;flex-direction:column;justify-content:space-between;gap:clamp(48px,7vw,96px);min-height:clamp(300px,32vw,420px);padding:clamp(24px,3vw,44px);border-radius:4px;background:#00A65B;color:#1C1C1C">
-        <div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;font-variant-numeric:tabular-nums"><span>{{ k.tag }}</span><span>pp. {{ k.pages }}</span></div>
-        <div style="display:flex;flex-direction:column;gap:22px">
-          <span style="font-size:clamp(32px,4vw,56px);font-weight:500;letter-spacing:-.045em;line-height:1">{{ k.name }}</span>
-          <span style="font-size:15px;opacity:.8">{{ k.count }} series, each a complete system with every component listed</span>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a href="products.html?cat={{ k.id }}" style="padding:13px 20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:14px;font-weight:500" style-hover="color:#EFEFEF;background:#000">Browse series</a>
-            <sc-if value="{{ k.hasDl }}" hint-placeholder-val="{{ true }}"><a href="{{ k.dl }}" target="_blank" rel="noopener" style="padding:13px 20px;border-radius:999px;border:1px solid rgba(28,28,28,.35);font-size:14px;font-weight:500" style-hover="border-color:#1C1C1C">Download PDF ↓</a></sc-if>
-          </div>
-        </div>
-      </div>
-    </sc-for>
-  </div>
-</section>
-
-<section id="pdfs" style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(120px,16vw,200px)">
+<section id="pdfs" style="max-width:1440px;margin:0 auto;padding:0 clamp(20px,4vw,56px);margin-top:clamp(80px,10vw,140px)">
   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(32px,4vw,56px)">
     <div style="display:flex;flex-direction:column;gap:18px">
       <span data-rv="" style="font-size:13px;color:#676868">Download &amp; view</span>

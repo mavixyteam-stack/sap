@@ -208,11 +208,10 @@ const CNT = {};
 const PRODUCTS = D.products.filter(p => COLS.some(c => c.id === p.col)).map((p, i) => {
   const col = COLS.find(c => c.id === p.col);
   let fins = p.fins.filter(n => FINC[n]).map(n => ({ n, c: FINC[n] }));
-  if (!fins.length && FIN.length) fins = [{ n: FIN[0].n, c: FIN[0].c }];
   const shot = CNT[p.col] = (CNT[p.col] ?? -1) + 1;
   return {
     id: p.id, name: p.name, col: p.col, colName: col.name, cat: p.cat, catName: CAT[p.cat] || '', pages: p.pages, ord: i,
-    code: p.code, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
+    code: p.code, no: p.no || 0, n: p.n || 0, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
     img: p.img || SCENE[p.col] || PH, gallery: (p.gallery || []).filter(Boolean), desc: p.desc || ''
   };
 });

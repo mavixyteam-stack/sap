@@ -88,7 +88,7 @@ input::placeholder{color:#8D8E8E}
 <main data-screen-label="Products" style="max-width:1440px;margin:0 auto;padding:clamp(130px,16vh,170px) clamp(20px,4vw,56px) 0">
   <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
     <h1 style="margin:0;overflow:hidden;padding-bottom:.06em;font-size:clamp(44px,6.4vw,96px);font-weight:500;letter-spacing:-.055em;line-height:.95"><span data-rv="line" style="display:block">{{ shopTitle }}</span></h1>
-    <span data-rv="" style="font-size:14px;color:#676868;font-variant-numeric:tabular-nums">{{ resultCount }} of 70 series</span>
+    <span data-rv="" style="font-size:14px;color:#676868;font-variant-numeric:tabular-nums">{{ resultCount }} of {{ totalSeries }} series</span>
   </div>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:clamp(32px,4vw,48px) 0 0">
@@ -142,7 +142,7 @@ input::placeholder{color:#8D8E8E}
           </button>
         </sc-for>
       </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <sc-if value="{{ hasFinOpts }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:14px">
         <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8D8E8E">Finish</span>
         <div style="display:grid;grid-template-columns:repeat(6,28px);gap:10px">
           <sc-for list="{{ finOpts }}" as="o" hint-placeholder-count="6">
@@ -150,7 +150,7 @@ input::placeholder{color:#8D8E8E}
           </sc-for>
         </div>
         <span style="font-size:13px;color:#676868">{{ finLabel }}</span>
-      </div>
+      </div></sc-if>
       <button onClick="{{ toggleNew }}" style="display:flex;justify-content:space-between;align-items:center;border:none;background:none;padding:0;font-size:14px;cursor:pointer">
         <span>New series only</span>
         <span style="width:38px;height:22px;border-radius:999px;background:{{ newTrack }};position:relative;transition:background .25s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:999px;background:#fff;transform:{{ newKnob }};transition:transform .25s cubic-bezier(.2,.7,.2,1)"></span></span>
@@ -162,20 +162,28 @@ input::placeholder{color:#8D8E8E}
       <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
         <div data-grid="" style="display:grid;grid-template-columns:repeat(auto-fill,minmax({{ minCol }},1fr));gap:clamp(28px,3vw,44px) clamp(16px,1.6vw,24px)">
           <sc-for list="{{ results }}" as="p" hint-placeholder-count="9">
-            <a href="product.html?id={{ p.id }}" data-hov="" data-rv="" data-d="{{ p.delay }}" style="display:flex;flex-direction:column;gap:14px">
-              <div style="position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
-                <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ p.img }}" alt="" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.05)"></sc-if><span data-hx="translateY(0)" style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#EFEFEF;font-size:12px;font-weight:500;transform:translateY(calc(100% + 20px));transition:transform .5s cubic-bezier(.2,.7,.2,1);pointer-events:none">View series <span style="width:6px;height:6px;border-radius:999px;background:#00A65B"></span></span>
-                <sc-if value="{{ p.isNew }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;padding:5px 9px;border-radius:999px;background:#00A65B;font-size:11px;font-weight:600">New</span></sc-if>
-                <div style="position:absolute;right:12px;bottom:12px;display:flex;gap:4px">
-                  <sc-for list="{{ p.sw }}" as="s" hint-placeholder-count="3"><span style="width:12px;height:12px;border-radius:999px;background:{{ s.c }};box-shadow:0 0 0 1.5px #EFEFEF"></span></sc-for>
+            <div style="display:contents">
+              <sc-if value="{{ p.head }}" hint-placeholder-val="{{ false }}">
+                <div data-rv="" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-end;gap:12px 24px;flex-wrap:wrap;padding:{{ p.headPad }} 0 14px;border-bottom:1px solid #1C1C1C">
+                  <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap"><span style="font-size:13px;font-weight:500;color:#00A65B;font-variant-numeric:tabular-nums">{{ p.headTag }}</span><h2 style="margin:0;font-size:clamp(26px,2.8vw,40px);font-weight:500;letter-spacing:-.04em;line-height:1">{{ p.headName }}</h2></div>
+                  <span style="font-size:13px;color:#676868;font-variant-numeric:tabular-nums">{{ p.headMeta }}</span>
                 </div>
-              </div>
-              <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
-                <span style="font-size:16px;font-weight:500;letter-spacing:-.015em;line-height:1.25">{{ p.name }}</span>
-                <span style="font-size:12px;color:#8D8E8E;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.code }}</span>
-              </div>
-              <span style="font-size:13px;color:#676868;margin-top:-8px">{{ p.colName }} · pp. {{ p.pages }}</span>
-            </a>
+              </sc-if>
+            <a href="product.html?id={{ p.id }}" data-hov="" data-rv="" data-d="{{ p.delay }}" style="display:flex;flex-direction:column;gap:14px">
+                <div style="position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
+                  <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ p.img }}" alt="" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.05)"></sc-if><span data-hx="translateY(0)" style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#EFEFEF;font-size:12px;font-weight:500;transform:translateY(calc(100% + 20px));transition:transform .5s cubic-bezier(.2,.7,.2,1);pointer-events:none">View series <span style="width:6px;height:6px;border-radius:999px;background:#00A65B"></span></span>
+                  <sc-if value="{{ p.isNew }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;padding:5px 9px;border-radius:999px;background:#00A65B;font-size:11px;font-weight:600">New</span></sc-if>
+                  <div style="position:absolute;right:12px;bottom:12px;display:flex;gap:4px">
+                    <sc-for list="{{ p.sw }}" as="s" hint-placeholder-count="3"><span style="width:12px;height:12px;border-radius:999px;background:{{ s.c }};box-shadow:0 0 0 1.5px #EFEFEF"></span></sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
+                  <span style="font-size:16px;font-weight:500;letter-spacing:-.015em;line-height:1.25">{{ p.name }}</span>
+                  <span style="font-size:12px;color:#8D8E8E;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.code }}</span>
+                </div>
+                <span style="font-size:13px;color:#676868;margin-top:-8px">{{ p.sub }}</span>
+              </a>
+            </div>
           </sc-for>
         </div>
       </sc-if>
@@ -242,11 +250,10 @@ const CNT = {};
 const PRODUCTS = D.products.filter(p => COLS.some(c => c.id === p.col)).map((p, i) => {
   const col = COLS.find(c => c.id === p.col);
   let fins = p.fins.filter(n => FINC[n]).map(n => ({ n, c: FINC[n] }));
-  if (!fins.length && FIN.length) fins = [{ n: FIN[0].n, c: FIN[0].c }];
   const shot = CNT[p.col] = (CNT[p.col] ?? -1) + 1;
   return {
     id: p.id, name: p.name, col: p.col, colName: col.name, cat: p.cat, catName: CAT[p.cat] || '', pages: p.pages, ord: i,
-    code: p.code, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
+    code: p.code, no: p.no || 0, n: p.n || 0, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
     img: p.img || SCENE[p.col] || PH, gallery: (p.gallery || []).filter(Boolean), desc: p.desc || ''
   };
 });
@@ -260,7 +267,7 @@ const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc',
 
 
 const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
-const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
+const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, sub: p.colName + ' · pp. ' + p.pages + (p.n ? ' · ' + p.n + ' components' : ''), isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
 const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
 const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'index.html#catalogues'], ['About', 'about.html'], ['Contact', 'contact.html']];
 const MOBV = c => {
@@ -349,12 +356,19 @@ class Component extends DCLogic {
     return {
       ...MOBV(this), ...NAV('Products'), showImages, enqCount: this.state.enq,
       shopTitle: f.cols.length === 1 ? COLS.find(c => c.id === f.cols[0]).name : 'All products',
-      resultCount: res.length, results: res.map((p, i) => CARD(p, i)),
+      resultCount: res.length, totalSeries: PRODUCTS.length,
+      results: res.map((p, i) => {
+        const prev = res[i - 1], head = sort === 'catalogue' && (!prev || prev.cat !== p.cat);
+        const ci = D.catalogues.findIndex(k => k.key === p.cat), cat = D.catalogues[ci] || {}, inGroup = res.filter(x => x.cat === p.cat).length;
+        return { ...CARD(p, i), head, headTag: 'Catalogue ' + String(ci + 1).padStart(2, '0'), headName: CAT[p.cat] || '',
+          headMeta: inGroup + ' series' + (cat.pages ? ' · pp. ' + cat.pages : ''), headPad: i === 0 ? '0px' : 'clamp(28px,4vw,56px)' };
+      }),
       hasResults: res.length > 0, noResults: res.length === 0,
       colTabs,
       catOpts: ['ap', 'af'].map(k => ({ name: CAT[k], count: bc.filter(p => p.cat === k).length, ...box(f.cats.includes(k)), toggle: () => this.toggle('cats', k) })),
       matOpts: MATS.map(m => ({ name: m, count: bm.filter(p => p.mat === m).length, ...box(f.mats.includes(m)), toggle: () => this.toggle('mats', m) })).filter(o => o.count || f.mats.includes(o.name)),
       finOpts: FIN.map(x => ({ name: x.n, c: x.c, ring: f.fins.includes(x.n) ? '0 0 0 2px #EFEFEF, 0 0 0 3.5px #1C1C1C' : 'inset 0 0 0 1px rgba(28,28,28,.08)', toggle: () => this.toggle('fins', x.n) })),
+      hasFinOpts: PRODUCTS.some(p => p.fins.length),
       finLabel: f.fins.length ? f.fins.join(', ') : 'Any finish',
       chips, hasChips: chips.length > 0, chipsLabel: chips.length ? 'Filtered by' : 'Showing everything',
       clearAll: () => this.setState({ f: { cols: [], cats: [], mats: [], fins: [], newOnly: false }, q: '' }),

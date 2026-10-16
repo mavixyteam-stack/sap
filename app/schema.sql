@@ -84,3 +84,20 @@ CREATE TABLE IF NOT EXISTS enquiries (
   ip          TEXT NOT NULL DEFAULT '',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Catalogue structure: each product ("series") is a complete system made of components.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS series_no INT NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS components (
+  id         SERIAL PRIMARY KEY,
+  product_id TEXT NOT NULL REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  section    TEXT NOT NULL DEFAULT '',      -- group heading inside the series, e.g. "Door Closer, Hinges & Tower Bolt"
+  num        INT,                           -- item number printed in the catalogue
+  code       TEXT NOT NULL DEFAULT '',      -- item code, e.g. SAP 5068
+  name       TEXT NOT NULL DEFAULT '',
+  material   TEXT NOT NULL DEFAULT '',
+  image      TEXT NOT NULL DEFAULT '',
+  position   INT NOT NULL DEFAULT 0,
+  active     BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS components_product_idx ON components(product_id, position);

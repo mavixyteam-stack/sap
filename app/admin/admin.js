@@ -56,15 +56,16 @@
   function confirmBox(msg) { return window.confirm(msg); }
 
   /* ---------- drawer ---------- */
-  function drawer(title, body, onSave, saveLabel) {
+  function drawer(title, body, onSave, saveLabel, opts) {
+    opts = opts || {};
     var scrim = h('div', { class: 'scrim' });
     var save = h('button', { class: 'btn green' }, saveLabel || 'Save');
-    var close = function () { scrim.remove(); box.remove(); document.removeEventListener('keydown', esc); };
-    var esc = function (e) { if (e.key === 'Escape') close(); };
-    var box = h('aside', { class: 'drawer', role: 'dialog', 'aria-label': title },
-      h('header', null, h('h2', null, title), h('button', { class: 'btn ghost icon', onclick: close, 'aria-label': 'Close' }, '✕')),
+    var close = function () { scrim.remove(); box.remove(); document.removeEventListener('keydown', esc); if (opts.onClose) opts.onClose(); };
+    var esc = function (e) { if (e.key === 'Escape' && box.parentNode && document.querySelectorAll('.drawer').length && box === document.querySelectorAll('.drawer')[document.querySelectorAll('.drawer').length - 1]) close(); };
+    var box = h('aside', { class: 'drawer' + (opts.wide ? ' wide' : ''), role: 'dialog', 'aria-label': title },
+      h('header', null, h('h2', null, title), h('button', { class: 'btn ghost icon', onclick: close, 'aria-label': 'Close' }, '\u2715')),
       h('div', { class: 'body' }, body),
-      h('footer', null, h('button', { class: 'btn ghost', onclick: close }, 'Cancel'), save));
+      h('footer', null, opts.noCancel ? null : h('button', { class: 'btn ghost', onclick: close }, 'Cancel'), save));
     save.addEventListener('click', function () {
       save.disabled = true;
       Promise.resolve(onSave()).then(function () { close(); }, function (e) { save.disabled = false; fail(e); });
@@ -262,56 +263,161 @@
 
   /* ---------- products ---------- */
   views.products = function (main) {
-    var f = state.pf = state.pf || { q: '', col: '', show: '' };
-    var list = h('div', { class: 'list' });
-    var q = h('input', { type: 'search', placeholder: 'Search products…', value: f.q, oninput: function () { f.q = q.value; paint(); } });
+    var f = state.pf = state.pf || { q: '', cat: '', col: '', show: '' };
+    var list = h('div', { class: 'stack', style: 'gap:28px' });
+    var q = h('input', { type: 'search', placeholder: 'Search by name or code…', value: f.q, oninput: function () { f.q = q.value; paint(); } });
+    var catSel = h('select', { onchange: function () { f.cat = catSel.value; paint(); } });
     var colSel = h('select', { onchange: function () { f.col = colSel.value; paint(); } });
     var showSel = h('select', { onchange: function () { f.show = showSel.value; paint(); } },
-      [['', 'All'], ['live', 'Visible'], ['hidden', 'Hidden'], ['new', 'Marked New'], ['featured', 'On home page']].map(function (o) { return h('option', { value: o[0], selected: f.show === o[0] }, o[1]); }));
-    main.appendChild(header('Products', 'Add, edit, hide or reorder the products shown on the website.',
+      [['', 'All'], ['live', 'Visible'], ['hidden', 'Hidden'], ['new', 'Marked New'], ['featured', 'On home page'], ['empty', 'No components yet']].map(function (o) { return h('option', { value: o[0], selected: f.show === o[0] }, o[1]); }));
+    main.appendChild(header('Products', 'Every product is a complete system, shown in the same order as the printed catalogue.',
       h('button', { class: 'btn green', onclick: function () { editProduct(); } }, '+ New product')));
-    main.appendChild(h('div', { class: 'bar' }, q, colSel, showSel));
+    main.appendChild(h('div', { class: 'bar' }, q, catSel, colSel, showSel));
     main.appendChild(list);
 
-    function fillCols() {
+    function fillSelects() {
+      clear(catSel); catSel.appendChild(h('option', { value: '' }, 'Both catalogues'));
+      state.cats.forEach(function (k) { catSel.appendChild(h('option', { value: k.key, selected: f.cat === k.key }, k.name)); });
       clear(colSel); colSel.appendChild(h('option', { value: '' }, 'All categories'));
       state.cols.forEach(function (c) { colSel.appendChild(h('option', { value: c.id, selected: f.col === c.id }, c.name)); });
     }
     function paint() {
       clear(list);
       var qq = f.q.trim().toLowerCase();
-      var rows = state.prods.filter(function (p) {
-        if (f.col && p.collection_id !== f.col) return false;
-        if (f.show === 'live' && !p.active) return false;
-        if (f.show === 'hidden' && p.active) return false;
-        if (f.show === 'new' && !p.is_new) return false;
-        if (f.show === 'featured' && !p.featured) return false;
-        return !qq || (p.name + ' ' + p.code + ' ' + p.collection_name).toLowerCase().indexOf(qq) >= 0;
+      var canMove = !qq && !f.col && !f.show;
+      var shown = 0;
+      state.cats.forEach(function (k, ki) {
+        if (f.cat && f.cat !== k.key) return;
+        var all = state.prods.filter(function (p) { return p.catalogue_key === k.key; });
+        var rows = all.filter(function (p) {
+          if (f.col && p.collection_id !== f.col) return false;
+          if (f.show === 'live' && !p.active) return false;
+          if (f.show === 'hidden' && p.active) return false;
+          if (f.show === 'new' && !p.is_new) return false;
+          if (f.show === 'featured' && !p.featured) return false;
+          if (f.show === 'empty' && p.component_count) return false;
+          return !qq || (p.name + ' ' + p.code + ' ' + p.collection_name).toLowerCase().indexOf(qq) >= 0;
+        });
+        if (!rows.length) return;
+        shown += rows.length;
+        var box = h('div', { class: 'list' });
+        rows.forEach(function (p, i) {
+          var move = function (d) { api('/products/' + encodeURIComponent(p.id) + '/move', 'POST', { dir: d }).then(function () { return reload(paint); }).catch(fail); };
+          box.appendChild(h('div', { class: 'item' + (p.active ? '' : ' off') },
+            h('img', { class: 'thumb', src: img(p.image) || '/assets/placeholder.svg', alt: '', loading: 'lazy' }),
+            h('div', { style: 'min-width:0' },
+              h('div', { class: 't' }, h('span', { class: 'muted', style: 'font-weight:400;margin-right:8px;font-variant-numeric:tabular-nums' }, p.code), p.name,
+                p.is_new ? h('span', { class: 'pill g' }, 'New') : null, p.featured ? h('span', { class: 'pill' }, 'Home') : null,
+                p.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
+              h('div', { class: 's' }, p.collection_name + (p.pages ? ' · pp. ' + p.pages : '') + ' · ' + (p.component_count ? p.component_count + ' components' : 'no components yet'))),
+            h('div', { class: 'acts' },
+              h('button', { class: 'btn ghost sm', onclick: function () { openComponents(p); } }, 'What’s included (' + (p.component_count || 0) + ')'),
+              canMove ? [h('button', { class: 'btn ghost sm icon', title: 'Move up', disabled: i === 0, onclick: function () { move(-1); } }, '↑'),
+                h('button', { class: 'btn ghost sm icon', title: 'Move down', disabled: i === rows.length - 1, onclick: function () { move(1); } }, '↓')] : null,
+              h('button', { class: 'btn ghost sm', onclick: function () { editProduct(p); } }, 'Edit'),
+              h('button', { class: 'btn danger sm', onclick: function () {
+                if (!confirmBox('Delete “' + p.name + '” and its ' + (p.component_count || 0) + ' components? This cannot be undone. (Tip: switch it to Hidden to keep it.)')) return;
+                api('/products/' + encodeURIComponent(p.id), 'DELETE').then(function () { toast('Product deleted'); return reload(paint); }).catch(fail);
+              } }, 'Delete'))));
+        });
+        list.appendChild(h('section', null,
+          h('div', { class: 'grp' }, h('span', { class: 'muted small' }, 'Catalogue ' + String(ki + 1).padStart(2, '0')), h('h2', null, k.name),
+            h('span', { class: 'muted small' }, all.length + ' series' + (k.pages_label ? ' · pp. ' + k.pages_label : ''))),
+          box));
       });
-      if (!rows.length) list.appendChild(h('div', { class: 'empty' }, 'No products match.'));
-      var canMove = !!f.col && !qq && !f.show;
-      rows.forEach(function (p) {
-        var move = function (d) { api('/products/' + encodeURIComponent(p.id) + '/move', 'POST', { dir: d }).then(function () { return reload(paint); }).catch(fail); };
-        list.appendChild(h('div', { class: 'item' + (p.active ? '' : ' off') },
-          h('img', { class: 'thumb', src: img(p.image) || '/assets/placeholder.svg', alt: '', loading: 'lazy' }),
-          h('div', { style: 'min-width:0' },
-            h('div', { class: 't' }, p.name, p.is_new ? h('span', { class: 'pill g' }, 'New') : null,
-              p.featured ? h('span', { class: 'pill' }, 'Home') : null, p.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
-            h('div', { class: 's' }, p.code + ' · ' + p.collection_name + (p.pages ? ' · pp. ' + p.pages : ''))),
-          h('div', { class: 'acts' },
-            canMove ? [h('button', { class: 'btn ghost sm icon', title: 'Move up', onclick: function () { move(-1); } }, '↑'),
-              h('button', { class: 'btn ghost sm icon', title: 'Move down', onclick: function () { move(1); } }, '↓')] : null,
-            h('button', { class: 'btn ghost sm', onclick: function () { editProduct(p); } }, 'Edit'),
-            h('button', { class: 'btn danger sm', onclick: function () {
-              if (!confirmBox('Delete “' + p.name + '”? This cannot be undone. (Tip: switch it to Hidden to keep it.)')) return;
-              api('/products/' + encodeURIComponent(p.id), 'DELETE').then(function () { toast('Product deleted'); return reload(paint); }).catch(fail);
-            } }, 'Delete'))));
+      if (!shown) list.appendChild(h('div', { class: 'empty' }, 'No products match.'));
+    }
+
+    function openComponents(p) {
+      var comps = [], filter = '';
+      var body = h('div', { class: 'stack', style: 'gap:14px' });
+      var listEl = h('div', { class: 'stack', style: 'gap:22px' });
+      var search = h('input', { type: 'search', placeholder: 'Search components…', oninput: function () { filter = search.value.trim().toLowerCase(); paintC(); } });
+      var bulkFile = h('input', { type: 'file', accept: 'image/*', multiple: true, style: 'display:none' });
+      var bulkBtn = h('button', { class: 'btn ghost', type: 'button', onclick: function () { bulkFile.click(); } }, 'Add photos in bulk');
+      bulkFile.addEventListener('change', function () {
+        var files = Array.prototype.slice.call(bulkFile.files); if (!files.length) return;
+        bulkBtn.disabled = true; bulkBtn.textContent = 'Uploading ' + files.length + '…';
+        var section = comps.length ? comps[comps.length - 1].section : '';
+        files.reduce(function (pr, file) {
+          return pr.then(function () {
+            return uploadFile(file).then(function (path) {
+              var nm = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+              return api('/products/' + encodeURIComponent(p.id) + '/components', 'POST', { name: nm, section: section, image: path });
+            });
+          });
+        }, Promise.resolve()).then(function () { toast(files.length + ' components added — rename them below'); return refreshC(); })
+          .catch(fail).then(function () { bulkBtn.disabled = false; bulkBtn.textContent = 'Add photos in bulk'; bulkFile.value = ''; });
       });
+      body.appendChild(h('div', { class: 'row' }, h('button', { class: 'btn green', onclick: function () { editComp(); } }, '+ Add component'), bulkBtn, bulkFile, search));
+      body.appendChild(h('p', { class: 'muted small', style: 'margin:0' }, 'This is the “What’s included” list customers see on the product page. Components are grouped by section, in the order shown here.'));
+      body.appendChild(listEl);
+
+      function sections() { var s = []; comps.forEach(function (c) { if (s.indexOf(c.section) < 0) s.push(c.section); }); return s; }
+      function paintC() {
+        clear(listEl);
+        if (!comps.length) { listEl.appendChild(h('div', { class: 'empty' }, 'No components yet. Add the parts that make up this system.')); return; }
+        sections().forEach(function (sec) {
+          var rows = comps.filter(function (c) { return c.section === sec && (!filter || (c.name + ' ' + c.code).toLowerCase().indexOf(filter) >= 0); });
+          if (!rows.length) return;
+          var inSec = comps.filter(function (c) { return c.section === sec; });
+          var box = h('div', { class: 'list' });
+          rows.forEach(function (c) {
+            var idx = inSec.indexOf(c);
+            var move = function (d) {
+              var j = idx + d; if (j < 0 || j >= inSec.length) return;
+              var a = comps.indexOf(inSec[idx]), b = comps.indexOf(inSec[j]); var t = comps[a]; comps[a] = comps[b]; comps[b] = t;
+              api('/products/' + encodeURIComponent(p.id) + '/components/reorder', 'POST', { ids: comps.map(function (x) { return x.id; }) }).then(refreshC).catch(fail);
+            };
+            box.appendChild(h('div', { class: 'item comp' + (c.active ? '' : ' off') },
+              h('div', { class: 'cthumb', style: c.image ? 'background-image:url("' + img(c.image) + '")' : '' }, c.image ? '' : 'No photo'),
+              h('div', { style: 'min-width:0' }, h('div', { class: 't' }, c.name || h('span', { class: 'muted' }, 'Untitled'), c.active ? null : h('span', { class: 'pill o' }, 'Hidden')),
+                h('div', { class: 's' }, [c.code, c.material].filter(Boolean).join(' · '))),
+              h('div', { class: 'acts' },
+                h('button', { class: 'btn ghost sm icon', disabled: idx === 0, onclick: function () { move(-1); } }, '↑'),
+                h('button', { class: 'btn ghost sm icon', disabled: idx === inSec.length - 1, onclick: function () { move(1); } }, '↓'),
+                h('button', { class: 'btn ghost sm', onclick: function () { editComp(c); } }, 'Edit'),
+                h('button', { class: 'btn danger sm', onclick: function () {
+                  if (!confirmBox('Remove “' + (c.name || c.code || 'this component') + '”?')) return;
+                  api('/components/' + c.id, 'DELETE').then(refreshC).catch(fail);
+                } }, 'Remove'))));
+          });
+          var rn = h('button', { class: 'btn ghost sm', onclick: function () {
+            var nv = window.prompt('Rename this section', sec); if (nv === null || nv.trim() === sec) return;
+            inSec.reduce(function (pr, c) { return pr.then(function () { return api('/components/' + c.id, 'PUT', compBody(c, { section: nv.trim() })); }); }, Promise.resolve()).then(refreshC).catch(fail);
+          } }, 'Rename');
+          listEl.appendChild(h('div', null, h('div', { class: 'grp' }, h('h2', { style: 'font-size:16px' }, sec || 'Ungrouped'), h('span', { class: 'row' }, h('span', { class: 'muted small' }, inSec.length + ' items'), rn)), box));
+        });
+      }
+      function compBody(c, over) {
+        var b = { section: c.section, code: c.code, name: c.name, material: c.material, image: c.image, num: c.num, active: c.active };
+        Object.keys(over || {}).forEach(function (k) { b[k] = over[k]; }); return b;
+      }
+      function refreshC() { return api('/products/' + encodeURIComponent(p.id) + '/components').then(function (r) { comps = r; paintC(); }).catch(fail); }
+      function editComp(c) {
+        var isNew = !c;
+        c = c || { section: comps.length ? comps[comps.length - 1].section : '', code: '', name: '', material: '', image: '', active: true };
+        var name = h('input', { type: 'text', value: c.name, maxlength: 160, placeholder: 'e.g. Concealed floor spring' });
+        var code = h('input', { type: 'text', value: c.code, maxlength: 40, placeholder: 'e.g. SSDF 5036' });
+        var sec = h('input', { type: 'text', value: c.section, maxlength: 120, list: 'seclist', placeholder: 'e.g. Pivot & Floor Spring' });
+        var dl = h('datalist', { id: 'seclist' }, sections().filter(Boolean).map(function (s) { return h('option', { value: s }); }));
+        var mat = h('input', { type: 'text', value: c.material, maxlength: 80, placeholder: 'e.g. Aluminium (optional)' });
+        var pic = imagePicker(c.image, 'Photo', 'Square or portrait photo on a plain background works best.');
+        var vis = toggle('Visible on the website', c.active);
+        drawer(isNew ? 'Add component' : 'Edit component', [field('Name', name), h('div', { class: 'grid2' }, field('Item code', code), field('Material', mat)),
+          field('Section', sec, 'The group heading it appears under on the product page.'), dl, pic, vis], function () {
+          var b = { section: sec.value, code: code.value, name: name.value, material: mat.value, image: pic.get(), num: c.num == null ? null : c.num, active: vis.input.checked };
+          if (!b.name.trim() && !b.code.trim()) return Promise.reject(new Error('Add a name or an item code'));
+          return api(isNew ? '/products/' + encodeURIComponent(p.id) + '/components' : '/components/' + c.id, isNew ? 'POST' : 'PUT', b).then(function () { toast('Saved'); return refreshC(); });
+        });
+      }
+      drawer(p.name + ' — what’s included', body, function () { return Promise.resolve(); }, 'Done', { wide: true, noCancel: true, onClose: function () { reload(paint); } });
+      refreshC();
     }
 
     function editProduct(p) {
       var isNew = !p;
-      p = p || { name: '', collection_id: f.col || (state.cols[0] && state.cols[0].id) || '', catalogue_key: state.cats[0] && state.cats[0].key, code: '',
+      p = p || { name: '', collection_id: f.col || (state.cols[0] && state.cols[0].id) || '', catalogue_key: f.cat || (state.cats[0] && state.cats[0].key), code: '',
         pages: '', material: '', finishes: [], description: '', image: '', gallery: [], is_new: false, active: true, featured: false, subs: null };
       var name = h('input', { type: 'text', value: p.name, maxlength: 140 });
       var col = h('select', null, state.cols.map(function (c) { return h('option', { value: c.id, selected: c.id === p.collection_id }, c.name + (c.active ? '' : ' (hidden)')); }));
@@ -325,13 +431,11 @@
       var mat = h('input', { type: 'text', value: p.material, list: 'matlist', maxlength: 60 });
       var chosen = {}; (p.finishes || []).forEach(function (n) { chosen[n] = 1; });
       var sw = h('div', { class: 'sw' }, state.fins.map(function (fi) {
-        var b = h('button', { type: 'button', class: chosen[fi.name] ? 'on' : '', onclick: function () {
-          chosen[fi.name] = !chosen[fi.name]; b.className = chosen[fi.name] ? 'on' : '';
-        } }, h('i', { style: 'background:' + fi.color }), fi.name);
+        var b = h('button', { type: 'button', class: chosen[fi.name] ? 'on' : '', onclick: function () { chosen[fi.name] = !chosen[fi.name]; b.className = chosen[fi.name] ? 'on' : ''; } }, h('i', { style: 'background:' + fi.color }), fi.name);
         return b;
       }));
-      var desc = h('textarea', { maxlength: 1500, placeholder: 'Leave empty to use the category description.' }, p.description);
-      var pic = imagePicker(p.image, 'Main photo', 'Portrait (4:5) photos match the website grid best. Large phone photos are resized automatically.');
+      var desc = h('textarea', { maxlength: 1500, placeholder: 'A short overview of the system and what it is used for.' }, p.description);
+      var pic = imagePicker(p.image, 'Main photo', 'Shown on the product list and at the top of the product page.');
       var gal = galleryPicker(p.gallery);
       var subs = (p.subs || []).map(function (s) { return [s[0], s[1]]; });
       var subsBox = h('div', { class: 'stack', style: 'gap:8px' });
@@ -339,11 +443,11 @@
         clear(subsBox);
         subs.forEach(function (s, i) {
           subsBox.appendChild(h('div', { class: 'vrow' },
-            h('input', { type: 'text', value: s[0], placeholder: 'Variant name', oninput: function (e) { s[0] = e.target.value; } }),
+            h('input', { type: 'text', value: s[0], placeholder: 'Sub-system name', oninput: function (e) { s[0] = e.target.value; } }),
             h('input', { type: 'text', value: s[1], placeholder: 'Page', oninput: function (e) { s[1] = e.target.value; } }),
             h('button', { class: 'btn ghost sm icon', type: 'button', onclick: function () { subs.splice(i, 1); paintSubs(); } }, '×')));
         });
-        subsBox.appendChild(h('div', null, h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { subs.push(['', '']); paintSubs(); } }, '+ Add variant')));
+        subsBox.appendChild(h('div', null, h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { subs.push(['', '']); paintSubs(); } }, '+ Add sub-system')));
       };
       paintSubs();
       var isNewTog = toggle('Show a “New” badge', p.is_new);
@@ -357,12 +461,11 @@
         field('Product name', name),
         h('div', { class: 'grid2' }, field('Category', col), field('Catalogue', cat)),
         h('div', { class: 'grid2' }, field('Series code', code, isNew ? 'Generated from the catalogue if left empty.' : null), field('Catalogue pages', pages)),
-        field('Material', mat), matList,
-        field('Finishes', sw),
-        field('Description', desc),
-        pic, gal,
-        field('Variants (optional)', subsBox, 'Sub-products with their catalogue page, e.g. “Synchro Sliding — 18”.'),
-        h('div', { class: 'stack', style: 'gap:12px' }, isNewTog, feat, vis)
+        field('Overview', desc), pic, gal,
+        field('Sub-systems (optional)', subsBox, 'Named parts of the series with their catalogue page, e.g. “Synchro Sliding — 18”.'),
+        h('div', { class: 'stack', style: 'gap:12px' }, isNewTog, feat, vis),
+        h('details', null, h('summary', { class: 'muted small', style: 'cursor:pointer' }, 'More options (material, finishes)'),
+          h('div', { class: 'stack', style: 'margin-top:14px' }, field('Material', mat), matList, field('Finishes', sw)))
       ], function () {
         var body = { name: name.value, collection_id: col.value, catalogue_key: cat.value, code: code.value, pages: pages.value,
           material: mat.value, finishes: state.fins.map(function (x) { return x.name; }).filter(function (n) { return chosen[n]; }),
@@ -380,7 +483,7 @@
         }).then(function () { toast('Saved'); return reload(paint); });
       });
     }
-    load().then(function () { fillCols(); paint(); }).catch(fail);
+    load().then(function () { fillSelects(); paint(); }).catch(fail);
   };
 
   /* ---------- home page ---------- */

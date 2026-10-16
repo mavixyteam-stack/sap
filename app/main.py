@@ -64,7 +64,8 @@ def build_public_data():
         cats = c.execute("SELECT * FROM catalogues ORDER BY position").fetchall()
         fins = c.execute("SELECT * FROM finishes ORDER BY position, name").fetchall()
         prods = c.execute(
-            "SELECT p.* FROM products p JOIN collections c ON c.id=p.collection_id "
+            "SELECT p.*, (SELECT count(*) FROM components x WHERE x.product_id=p.id AND x.active) AS n "
+            "FROM products p JOIN collections c ON c.id=p.collection_id "
             "WHERE p.active AND c.active ORDER BY p.position, p.id").fetchall()
         slides = c.execute(
             "SELECT s.*, c.name AS col_name FROM slides s LEFT JOIN collections c ON c.id=s.collection_id AND c.active "
@@ -86,7 +87,7 @@ def build_public_data():
         "products": [{"id": r["id"], "code": r["code"], "name": r["name"], "col": r["collection_id"],
                       "cat": r["catalogue_key"], "pages": r["pages"], "isNew": r["is_new"], "subs": r["subs"],
                       "mat": r["material"], "fins": r["finishes"], "img": r["image"], "gallery": r["gallery"],
-                      "desc": r["description"]} for r in prods],
+                      "desc": r["description"], "no": r["series_no"], "n": r["n"]} for r in prods],
         "slides": [{"title": r["title"], "img": r["image"], "col": r["collection_id"] if r["col_name"] else "",
                     "label": r["col_name"] or "SAP Hardware"} for r in slides],
         "featured": [r["id"] for r in feat],
@@ -106,6 +107,22 @@ def _inject(html: str) -> str:
 @app.get("/api/data")
 def public_data():
     return JSONResponse(build_public_data(), headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/api/series/{pid}")
+def public_series(pid: str):
+    """The components that make up one series, grouped by section, for the product page."""
+    with db.conn() as c:
+        rows = c.execute("SELECT section, num, code, name, material, image FROM components "
+                         "WHERE product_id=%s AND active ORDER BY position, id", (pid,)).fetchall()
+    sections, index = [], {}
+    for r in rows:
+        key = r["section"] or ""
+        if key not in index:
+            index[key] = {"title": key, "items": []}
+            sections.append(index[key])
+        index[key]["items"].append({"no": r["num"], "code": r["code"], "name": r["name"], "mat": r["material"], "img": r["image"]})
+    return JSONResponse({"total": len(rows), "sections": sections}, headers={"Cache-Control": "public, max-age=60"})
 
 
 class EnquiryIn(BaseModel):
@@ -301,6 +318,10 @@ class IdsIn(BaseModel):
     ids: List[str]
 
 
+class IntIdsIn(BaseModel):
+    ids: List[int]
+
+
 @admin.post("/collections/reorder")
 def reorder_collections(b: IdsIn, u=Depends(current_user)):
     with db.conn() as c:
@@ -380,7 +401,9 @@ class ProductIn(BaseModel):
 def list_products(u=Depends(current_user)):
     with db.conn() as c:
         return c.execute(
-            "SELECT p.*, c.name AS collection_name FROM products p JOIN collections c ON c.id=p.collection_id "
+            "SELECT p.*, c.name AS collection_name, "
+            "(SELECT count(*) FROM components x WHERE x.product_id=p.id) AS component_count "
+            "FROM products p JOIN collections c ON c.id=p.collection_id "
             "ORDER BY p.position, p.id").fetchall()
 
 
@@ -443,25 +466,85 @@ class MoveIn(BaseModel):
 
 @admin.post("/products/{pid}/move")
 def move_product(pid: str, b: MoveIn, u=Depends(current_user)):
-    """Swap with the neighbouring product in the same category."""
+    """Swap with the neighbouring series in the same catalogue (the order shown on the website)."""
     with db.conn() as c:
-        me_ = c.execute("SELECT id, collection_id, position FROM products WHERE id=%s", (pid,)).fetchone()
+        # normalise positions first so every product has a unique slot
+        for i, r in enumerate(c.execute("SELECT id FROM products ORDER BY position, id").fetchall()):
+            c.execute("UPDATE products SET position=%s WHERE id=%s", (i, r["id"]))
+        me_ = c.execute("SELECT id, catalogue_key, position FROM products WHERE id=%s", (pid,)).fetchone()
         if not me_:
             raise HTTPException(404, "Product not found")
         if b.dir < 0:
-            o = c.execute("SELECT id, position FROM products WHERE collection_id=%s AND (position, id) < (%s, %s) "
-                          "ORDER BY position DESC, id DESC LIMIT 1", (me_["collection_id"], me_["position"], pid)).fetchone()
+            o = c.execute("SELECT id, position FROM products WHERE catalogue_key=%s AND position < %s "
+                          "ORDER BY position DESC LIMIT 1", (me_["catalogue_key"], me_["position"])).fetchone()
         else:
-            o = c.execute("SELECT id, position FROM products WHERE collection_id=%s AND (position, id) > (%s, %s) "
-                          "ORDER BY position, id LIMIT 1", (me_["collection_id"], me_["position"], pid)).fetchone()
+            o = c.execute("SELECT id, position FROM products WHERE catalogue_key=%s AND position > %s "
+                          "ORDER BY position LIMIT 1", (me_["catalogue_key"], me_["position"])).fetchone()
         if o:
-            if o["position"] == me_["position"]:  # tie: renumber everything stably first
-                for i, r in enumerate(c.execute("SELECT id FROM products ORDER BY position, id").fetchall()):
-                    c.execute("UPDATE products SET position=%s WHERE id=%s", (i, r["id"]))
-                me_ = c.execute("SELECT position FROM products WHERE id=%s", (pid,)).fetchone()
-                o = c.execute("SELECT position FROM products WHERE id=%s", (o["id"],)).fetchone() | {"id": o["id"]}
             c.execute("UPDATE products SET position=%s WHERE id=%s", (o["position"], pid))
             c.execute("UPDATE products SET position=%s WHERE id=%s", (me_["position"], o["id"]))
+    invalidate()
+    return {"ok": True}
+
+
+# --------------------------------------------------------------------------- components (what's included in a series)
+
+class ComponentIn(BaseModel):
+    section: str = Field("", max_length=120)
+    code: str = Field("", max_length=40)
+    name: str = Field("", max_length=160)
+    material: str = Field("", max_length=80)
+    image: str = ""
+    num: Optional[int] = None
+    active: bool = True
+
+
+@admin.get("/products/{pid}/components")
+def list_components(pid: str, u=Depends(current_user)):
+    with db.conn() as c:
+        return c.execute("SELECT * FROM components WHERE product_id=%s ORDER BY position, id", (pid,)).fetchall()
+
+
+@admin.post("/products/{pid}/components")
+def create_component(pid: str, b: ComponentIn, u=Depends(current_user)):
+    with db.conn() as c:
+        if not c.execute("SELECT 1 FROM products WHERE id=%s", (pid,)).fetchone():
+            raise HTTPException(404, "Product not found")
+        pos = c.execute("SELECT coalesce(max(position),-1)+1 AS p FROM components WHERE product_id=%s", (pid,)).fetchone()["p"]
+        r = c.execute("INSERT INTO components(product_id,section,num,code,name,material,image,position,active) "
+                      "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                      (pid, b.section.strip(), b.num, b.code.strip(), b.name.strip(), b.material.strip(),
+                       asset_path(b.image), pos, b.active)).fetchone()
+    invalidate()
+    return {"id": r["id"]}
+
+
+@admin.put("/components/{cid}")
+def update_component(cid: int, b: ComponentIn, u=Depends(current_user)):
+    with db.conn() as c:
+        r = c.execute("UPDATE components SET section=%s,num=%s,code=%s,name=%s,material=%s,image=%s,active=%s "
+                      "WHERE id=%s RETURNING id",
+                      (b.section.strip(), b.num, b.code.strip(), b.name.strip(), b.material.strip(),
+                       asset_path(b.image), b.active, cid)).fetchone()
+        if not r:
+            raise HTTPException(404, "Component not found")
+    invalidate()
+    return {"ok": True}
+
+
+@admin.delete("/components/{cid}")
+def delete_component(cid: int, u=Depends(current_user)):
+    with db.conn() as c:
+        c.execute("DELETE FROM components WHERE id=%s", (cid,))
+    invalidate()
+    return {"ok": True}
+
+
+@admin.post("/products/{pid}/components/reorder")
+def reorder_components(pid: str, b: IntIdsIn, u=Depends(current_user)):
+    with db.conn() as c:
+        for i, cid in enumerate(b.ids):
+            c.execute("UPDATE components SET position=%s WHERE id=%s AND product_id=%s", (i, cid, pid))
     invalidate()
     return {"ok": True}
 
@@ -535,10 +618,6 @@ def delete_slide(sid: int, u=Depends(current_user)):
         _check_slides(c)
     invalidate()
     return {"ok": True}
-
-
-class IntIdsIn(BaseModel):
-    ids: List[int]
 
 
 @admin.post("/slides/reorder")

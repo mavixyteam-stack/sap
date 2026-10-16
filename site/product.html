@@ -111,8 +111,10 @@ input::placeholder{color:#8D8E8E}
         <span style="font-size:13px;color:#676868">{{ pd.colName }} · {{ pd.code }}</span>
         <h1 style="margin:0;font-size:clamp(34px,3.8vw,54px);font-weight:500;letter-spacing:-.045em;line-height:1;overflow:hidden;padding-bottom:.06em"><span data-rv="line" data-d="60" style="display:block">{{ pd.name }}</span></h1>
         <p style="margin:0;font-size:16px;line-height:1.6;color:#454646;text-wrap:pretty">{{ pd.desc }}</p>
+        <sc-if value="{{ hasComps }}" hint-placeholder-val="{{ false }}"><a href="#included" data-hov="" style="align-self:flex-start;display:inline-flex;gap:8px;align-items:center;border-bottom:1px solid #1C1C1C;padding-bottom:3px;font-size:14px;font-weight:500">{{ compLabel }} <span data-hx="translateY(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">↓</span></a></sc-if>
       </div>
 
+      <sc-if value="{{ pd.hasFins }}" hint-placeholder-val="{{ false }}">
       <div data-rv="" data-d="80" style="display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="font-weight:500">Finish</span><span style="color:#676868">{{ pd.finName }}</span></div>
         <div style="display:flex;gap:12px">
@@ -121,6 +123,7 @@ input::placeholder{color:#8D8E8E}
           </sc-for>
         </div>
       </div>
+      </sc-if>
 
       <sc-if value="{{ pd.hasVars }}" hint-placeholder-val="{{ false }}">
         <div data-rv="" data-d="120" style="display:flex;flex-direction:column;gap:14px">
@@ -152,9 +155,44 @@ input::placeholder{color:#8D8E8E}
           </div>
         </sc-for>
       </div>
-      <button data-hov="" style="align-self:flex-start;display:inline-flex;gap:8px;align-items:center;border:none;background:none;padding:0 0 3px;border-bottom:1px solid #1C1C1C;font-size:14px;font-weight:500;cursor:pointer">Download spec sheet <span data-hx="translateY(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">↓</span></button>
+      <a href="contact.html" data-hov="" style="align-self:flex-start;display:inline-flex;gap:8px;align-items:center;border-bottom:1px solid #1C1C1C;padding-bottom:3px;font-size:14px;font-weight:500">Ask for drawings &amp; project support <span data-hx="translateX(4px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
     </div>
   </div>
+
+  <sc-if value="{{ hasComps }}" hint-placeholder-val="{{ false }}">
+  <section id="included" style="padding-top:clamp(100px,12vw,160px)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap;margin-bottom:12px">
+      <h2 data-rv="" style="margin:0;font-size:clamp(30px,3.4vw,48px);font-weight:500;letter-spacing:-.045em;line-height:1">What's included.</h2>
+      <span data-rv="" style="font-size:14px;color:#676868;font-variant-numeric:tabular-nums">{{ compTotal }} components</span>
+    </div>
+    <p data-rv="" style="margin:0 0 clamp(28px,3vw,44px);max-width:560px;font-size:15px;line-height:1.55;color:#676868">One complete system. Everything below is supplied together for this series.</p>
+    <div style="display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-if value="{{ g.showHead }}" hint-placeholder-val="{{ true }}">
+          <div data-rv="" style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-top:14px;border-top:1px solid #1C1C1C">
+            <span style="font-size:17px;font-weight:500;letter-spacing:-.02em">{{ g.title }}</span>
+            <span style="font-size:13px;color:#8D8E8E;font-variant-numeric:tabular-nums">{{ g.count }}</span>
+          </div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:clamp(14px,1.4vw,20px)">
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="6">
+              <div data-rv="" data-d="{{ it.delay }}" style="display:flex;flex-direction:column;gap:10px">
+                <div style="aspect-ratio:1/1;border-radius:4px;overflow:hidden;background:#F4F4F4;display:flex;align-items:center;justify-content:center">
+                  <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ it.img }}" alt="{{ it.name }}" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;display:block;opacity:0;transition:opacity .6s"></sc-if>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.3">{{ it.name }}</span>
+                  <span style="font-size:12px;color:#8D8E8E">{{ it.code }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  </sc-if>
 
   <section style="padding-top:clamp(120px,14vw,180px)">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(28px,3vw,40px)">
@@ -232,11 +270,10 @@ const CNT = {};
 const PRODUCTS = D.products.filter(p => COLS.some(c => c.id === p.col)).map((p, i) => {
   const col = COLS.find(c => c.id === p.col);
   let fins = p.fins.filter(n => FINC[n]).map(n => ({ n, c: FINC[n] }));
-  if (!fins.length && FIN.length) fins = [{ n: FIN[0].n, c: FIN[0].c }];
   const shot = CNT[p.col] = (CNT[p.col] ?? -1) + 1;
   return {
     id: p.id, name: p.name, col: p.col, colName: col.name, cat: p.cat, catName: CAT[p.cat] || '', pages: p.pages, ord: i,
-    code: p.code, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
+    code: p.code, no: p.no || 0, n: p.n || 0, isNew: !!p.isNew, subs: p.subs && p.subs.length ? p.subs : null, mat: p.mat, fins, shot,
     img: p.img || SCENE[p.col] || PH, gallery: (p.gallery || []).filter(Boolean), desc: p.desc || ''
   };
 });
@@ -250,7 +287,7 @@ const MATS = ['Aluminium', 'Stainless Steel', 'Steel', 'Glass', 'Brass', 'Zinc',
 
 
 const ENQ0 = () => { try { return +(localStorage.getItem('sap-enq') || 0); } catch (e) { return 0; } };
-const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
+const CARD = (p, i) => ({ id: p.id, name: p.name, code: p.code, colName: p.colName, pages: p.pages, sub: p.colName + ' · pp. ' + p.pages + (p.n ? ' · ' + p.n + ' components' : ''), isNew: p.isNew, img: p.img, delay: (i % 4) * 70, sw: p.fins.map(x => ({ c: x.c })) });
 const NAV = act => { const o = {}; ['Home', 'Products', 'Collections', 'Catalogues', 'About'].forEach(k => { o['nav' + k] = k === act ? '1' : '.7'; o['nav' + k + 'U'] = k === act ? '100% 1px' : '0% 1px'; }); return o; };
 const MENU_ITEMS = [['Home', 'index.html'], ['Products', 'products.html'], ['Collections', 'index.html#collections'], ['Catalogues', 'index.html#catalogues'], ['About', 'about.html'], ['Contact', 'contact.html']];
 const MOBV = c => {
@@ -296,7 +333,8 @@ class Component extends DCLogic {
   componentWillUnmount() { window.removeEventListener('sap-enq', this._enq); window.removeEventListener('resize', this._rs); clearInterval(this.si); clearTimeout(this.tt); clearTimeout(this.at); }
   flash(msg) { clearTimeout(this.tt); this.setState({ toast: msg, toastOn: true }); this.tt = setTimeout(() => this.setState({ toastOn: false }), 2400); }
 
-  init() { const p = PRODUCTS.find(x => x.id === this.state.id); document.title = p.name + ' — ' + p.colName + ' | SAP Hardware'; const d = p.name + ' (' + p.code + ') from the SAP Hardware ' + p.colName + ' collection. ' + p.mat + ', available in ' + p.fins.map(x => x.n).join(', ') + '. Catalogue pp. ' + p.pages + '.'; document.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(m => m.setAttribute('content', d)); const o = document.querySelector('meta[property="og:title"]'); if (o) o.setAttribute('content', document.title); }
+  init() { const p = PRODUCTS.find(x => x.id === this.state.id); document.title = p.name + ' — ' + p.colName + ' | SAP Hardware'; const d = p.desc || (p.name + ' (' + p.code + ') from the SAP Hardware ' + p.colName + ' collection. Catalogue pp. ' + p.pages + '.'); document.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(m => m.setAttribute('content', d)); const o = document.querySelector('meta[property="og:title"]'); if (o) o.setAttribute('content', document.title);
+    fetch('/api/series/' + encodeURIComponent(p.id)).then(r => r.ok ? r.json() : null).then(d => { if (d) this.setState({ comps: d }); }).catch(() => {}); }
   renderVals() {
     const showImages = (this.props.imageMode ?? 'generated') === 'generated';
     const p = PRODUCTS.find(x => x.id === this.state.id);
@@ -307,15 +345,17 @@ class Component extends DCLogic {
       ...p, colId: p.col,
       imgs: imgs.map((src, i) => ({ thumb: src, op: sel === i ? '1' : '.55', ring: sel === i ? '0 0 0 1.5px #1C1C1C' : 'none', mop: sel === i ? '1' : '0', mtf: sel === i ? 'scale(1)' : 'scale(1.05)', pick: () => this.setState({ img: i }) })),
       desc: p.desc || col.blurb.replace(/\.$/, '') + ' — part of the ' + p.catName + ' catalogue. Full drawings and dimensions on pp. ' + p.pages + '.',
-      finName: p.fins[this.state.fin].n,
+      finName: p.fins.length ? p.fins[this.state.fin].n : '', hasFins: p.fins.length > 0,
       fins: p.fins.map((x, i) => ({ n: x.n, c: x.c, ring: this.state.fin === i ? '0 0 0 3px #EFEFEF, 0 0 0 4.5px #1C1C1C' : 'inset 0 0 0 1px rgba(28,28,28,.08)', pick: () => this.setState({ fin: i }) })),
       hasVars: !!p.subs,
       vars: (p.subs || []).map((v, i) => ({ letter: 'ABCDE'[i], name: v[0], page: v[1], dot: this.state.vari === i ? '#1C1C1C' : '#D3D4D4', pick: () => this.setState({ vari: i }) })),
-      specs: [{ k: 'Series', v: p.code }, { k: 'Catalogue', v: p.catName }, { k: 'Pages', v: p.pages }, { k: 'Collection', v: p.colName }, { k: 'Material', v: p.mat }, { k: 'Finishes', v: p.fins.map(x => x.n).join(', ') }]
+      specs: [{ k: 'Series', v: p.code }, { k: 'Catalogue', v: p.catName }, { k: 'Pages', v: p.pages }, { k: 'Collection', v: p.colName }, ...(p.mat ? [{ k: 'Material', v: p.mat }] : []), ...(p.fins.length ? [{ k: 'Finishes', v: p.fins.map(x => x.n).join(', ') }] : []), ...(p.n ? [{ k: 'Components', v: String(p.n) }] : [])]
     };
     const added = this.state.added;
     return {
       ...MOBV(this), ...NAV(''), showImages, enqCount: this.state.enq, pd,
+      ...(() => { const cs = this.state.comps, secs = cs ? cs.sections : []; return { hasComps: !!(cs && cs.total), compTotal: cs ? cs.total : 0, compLabel: cs ? 'See what\'s included · ' + cs.total + ' components' : '', secCount: secs.length, multiSec: secs.length > 1,
+        groups: secs.map(g => ({ title: g.title, showHead: secs.length > 1 || !!g.title, count: g.items.length, items: g.items.map((it, i) => ({ ...it, delay: (i % 6) * 40, hasCode: !!it.code })) })) }; })(),
       related: PRODUCTS.filter(x => x.col === p.col && x.id !== p.id).slice(0, 4).map((x, i) => CARD(x, i)),
       qty: this.state.qty,
       qtyDown: () => this.setState(s => ({ qty: Math.max(1, s.qty - 1) })),
@@ -323,7 +363,7 @@ class Component extends DCLogic {
       addEnq: () => {
         if (window.SAP) SAP.enq.add(this.state.qty);
         this.setState({ added: true }); clearTimeout(this.at); this.at = setTimeout(() => this.setState({ added: false }), 1800);
-        this.flash(p.name + ' · ' + pd.finName + ' added');
+        this.flash(p.name + (pd.finName ? ' · ' + pd.finName : '') + ' added');
       },
       addLabel: added ? 'Added to enquiry ✓' : 'Add to enquiry', addBg: added ? '#00A65B' : '#1C1C1C', addFg: added ? '#1C1C1C' : '#EFEFEF',
       toast: this.state.toast, toastOp: this.state.toastOn ? '1' : '0', toastTf: this.state.toastOn ? 'translate(-50%,0)' : 'translate(-50%,24px)'

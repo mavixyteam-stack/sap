@@ -45,6 +45,7 @@ def init():
         c.execute("SELECT pg_advisory_xact_lock(7305001)")  # one worker migrates at a time
         c.execute((HERE / "schema.sql").read_text())
         seed(c)
+        import_catalogue(c)
         bootstrap_admin(c)
 
 
@@ -113,3 +114,23 @@ def seed(c):
                   (s["title"], s["image"], s["collection"], i))
     set_setting(c, "centers", d["centers"])
     set_setting(c, "offices", d["offices"])
+
+
+def import_catalogue(c):
+    """One-time load of the printed catalogue (series order, components, photos) from catalogue_data.json."""
+    f = HERE / "catalogue_data.json"
+    if not f.exists() or get_setting(c, "catalogue_imported"):
+        return
+    d = json.loads(f.read_text(encoding="utf-8"))
+    for pid, s in d["series"].items():
+        r = c.execute("UPDATE products SET series_no=%s, pages=%s, image=%s, gallery=%s, description=%s, "
+                      "material=%s, finishes='{}' WHERE id=%s RETURNING id",
+                      (s["no"], s["pages"], s["image"], s["gallery"], s["description"], s.get("material", ""), pid)).fetchone()
+        if not r:
+            continue
+        c.execute("DELETE FROM components WHERE product_id=%s", (pid,))
+        for i, k in enumerate(s["components"]):
+            c.execute("INSERT INTO components(product_id,section,num,code,name,material,image,position) "
+                      "VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                      (pid, k["section"], k["num"], k["code"], k["name"], k["material"], k["image"], i))
+    set_setting(c, "catalogue_imported", True)

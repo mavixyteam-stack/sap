@@ -42,7 +42,7 @@ input::placeholder{color:#8D8E8E}
 
 <header data-hdr="" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(239,239,239,.82);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .3s">
   <div style="max-width:1440px;margin:0 auto;padding:16px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:space-between;gap:24px">
-    <a href="index.html" aria-label="SAP home" style="display:block;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <a href="index.html" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#676868">Architectural &amp; Furniture Fittings</span></a>
     <nav style="display:flex;align-items:center;gap:clamp(10px,2.6vw,36px);font-size:14px;font-weight:450">
       <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
       <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
@@ -51,7 +51,7 @@ input::placeholder{color:#8D8E8E}
       <a href="index.html#catalogues" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
       <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
       </sc-if>
-      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<sc-if value="{{ hasEnq }}" hint-placeholder-val="{{ false }}"><span data-badge="" style="min-width:20px;height:20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px">{{ enqCount }}</span></sc-if><span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
+      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
       <sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleMenu }}" aria-label="Open menu" style-active="transform:scale(.94)" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 14px;border-radius:999px;border:1px solid #C8C9C9;background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Menu<span style="width:28px;height:28px;border-radius:999px;background:#1C1C1C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="width:12px;height:1.5px;background:#EFEFEF"></span><span style="width:12px;height:1.5px;background:#EFEFEF"></span></span></button></sc-if>
     </nav>
   </div>
@@ -61,7 +61,7 @@ input::placeholder{color:#8D8E8E}
 <div data-menu="" aria-hidden="{{ menuHidden }}" style="position:fixed;inset:0;z-index:2147482000;background:#1C1C1C;color:#EFEFEF;clip-path:{{ mClip }};-webkit-clip-path:{{ mClip }};transition:{{ mClipT }};pointer-events:{{ mPe }};display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain">
   <div style="position:fixed;width:140vmax;height:140vmax;right:-70vmax;top:-70vmax;border-radius:999px;background:#00A65B;transform:{{ mBlobTf }};transition:{{ mBlobT }};pointer-events:none"></div>
   <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(20px,4vw,56px)">
-    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP home" style="display:block;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></a>
     <button onClick="{{ closeMenu }}" aria-label="Close menu" style-active="transform:scale(.9)" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 16px;border-radius:999px;border:1px solid #3A3B3B;background:transparent;color:#EFEFEF;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Close<span style="width:32px;height:32px;border-radius:999px;background:#00A65B;color:#1C1C1C;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transform:{{ mXTf }};transition:transform .9s cubic-bezier(.2,1.3,.3,1) .35s">×</span></button>
   </div>
   <nav style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:24px clamp(20px,4vw,56px)">
@@ -174,7 +174,7 @@ input::placeholder{color:#8D8E8E}
       <sc-for list="{{ featured }}" as="p" hint-placeholder-count="4">
         <a href="product.html?id={{ p.id }}" data-hov="" data-rv="" data-d="{{ p.delay }}" style="display:flex;flex-direction:column;gap:14px">
           <div style="position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
-            <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ p.img }}" alt="" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.05)"></sc-if><span data-hx="translateY(0)" style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#EFEFEF;font-size:12px;font-weight:500;transform:translateY(calc(100% + 20px));transition:transform .5s cubic-bezier(.2,.7,.2,1);pointer-events:none">View series <span style="width:6px;height:6px;border-radius:999px;background:#00A65B"></span></span>
+            <sc-if value="{{ showImages }}" hint-placeholder-val="{{ false }}"><img data-src="{{ p.img }}" alt="{{ p.name }}" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.05)"></sc-if><span data-hx="translateY(0)" style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#EFEFEF;font-size:12px;font-weight:500;transform:translateY(calc(100% + 20px));transition:transform .5s cubic-bezier(.2,.7,.2,1);pointer-events:none">View series <span style="width:6px;height:6px;border-radius:999px;background:#00A65B"></span></span>
             <sc-if value="{{ p.isNew }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;padding:5px 9px;border-radius:999px;background:#00A65B;font-size:11px;font-weight:600;letter-spacing:.02em">New</span></sc-if>
           </div>
           <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
@@ -203,13 +203,43 @@ input::placeholder{color:#8D8E8E}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <a href="products.html?cat={{ k.id }}" style="padding:12px 18px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:14px;font-weight:500" style-hover="color:#EFEFEF;background:#2a2a2a">Browse series</a>
-              <button data-hov="" style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;border:1px solid rgba(28,28,28,.2);background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .3s,transform .2s" style-hover="border-color:#1C1C1C" style-active="transform:scale(.97)">Download PDF <span data-hx="translateY(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">↓</span></button>
+              <sc-if value="{{ k.hasDl }}" hint-placeholder-val="{{ true }}"><a href="{{ k.dl }}" target="_blank" rel="noopener" data-hov="" style="display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;border:1px solid rgba(28,28,28,.2);background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:border-color .3s,transform .2s" style-hover="border-color:#1C1C1C" style-active="transform:scale(.97)">Download PDF <span data-hx="translateY(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">↓</span></a></sc-if>
             </div>
           </div>
         </sc-for>
       </div>
     </div>
   </section>
+
+  <sc-if value="{{ hasDocs }}" hint-placeholder-val="{{ false }}">
+  <section id="downloads" style="max-width:1440px;margin:0 auto;padding:clamp(120px,16vw,200px) clamp(20px,4vw,56px) 0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(32px,4vw,56px)">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <span data-rv="" style="font-size:13px;color:#676868">Downloads</span>
+        <h2 data-rv="" data-d="80" style="margin:0;font-size:clamp(34px,4.4vw,64px);font-weight:500;letter-spacing:-.045em;line-height:1">Catalogues &amp; brochures.</h2>
+      </div>
+      <p data-rv="" style="margin:0;max-width:340px;font-size:15px;line-height:1.55;color:#676868">Open online or save a copy for offline reference.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:clamp(16px,1.6vw,24px)">
+      <sc-for list="{{ docs }}" as="d" hint-placeholder-count="3">
+        <div data-rv="" data-d="{{ d.delay }}" style="display:flex;flex-direction:column;gap:16px">
+          <a href="{{ d.view }}" target="_blank" rel="noopener" data-hov="" style="display:block;position:relative;aspect-ratio:4/5;border-radius:4px;overflow:hidden;background:#E3E4E4">
+            <sc-if value="{{ d.hasCover }}" hint-placeholder-val="{{ true }}"><img data-src="{{ d.cover }}" alt="{{ d.title }} — cover" loading="lazy" data-gen="" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform 1.2s cubic-bezier(.2,.7,.2,1),opacity .8s" data-hx="scale(1.04)"></sc-if>
+            <span style="position:absolute;left:12px;top:12px;padding:5px 9px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:11px;font-weight:600;letter-spacing:.04em">PDF</span>
+          </a>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:17px;font-weight:500;letter-spacing:-.02em;line-height:1.25">{{ d.title }}</span>
+            <span style="font-size:13px;color:#676868">{{ d.note }}</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="{{ d.view }}" target="_blank" rel="noopener" style="padding:10px 16px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:13px;font-weight:500" style-hover="color:#EFEFEF;background:#000">View online</a>
+            <a href="{{ d.download }}" target="_blank" rel="noopener" style="padding:10px 16px;border-radius:999px;border:1px solid rgba(28,28,28,.2);font-size:13px;font-weight:500" style-hover="border-color:#1C1C1C">Download ↓</a>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  </sc-if>
 </main>
 
 <footer id="contact" style="margin-top:clamp(120px,16vw,200px);background:#1C1C1C;color:#EFEFEF">
@@ -217,7 +247,7 @@ input::placeholder{color:#8D8E8E}
     <div style="display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap">
       <div style="display:flex;flex-direction:column;gap:28px;max-width:520px">
         <h2 style="margin:0;font-size:clamp(34px,4.4vw,60px);font-weight:500;letter-spacing:-.045em;line-height:1">Specifying a project?</h2>
-        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Build an enquiry list from any series and our team will come back with drawings, finishes and project pricing.</p>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Tell us about your project and our team will come back with drawings, finishes and project support.</p>
         <a href="contact.html" data-mag="" style-active="transform:scale(.97)" style="transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s;align-self:flex-start;padding:15px 24px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-size:15px;font-weight:500" style-hover="color:#1C1C1C;background:#22B56E">Start an enquiry</a>
       </div>
       <div style="flex:1 1 300px;max-width:620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:32px 48px;font-size:14px">
@@ -236,10 +266,13 @@ input::placeholder{color:#8D8E8E}
           <a href="about.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">About us</a>
           <a href="contact.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Contact</a>
           <a href="contact.html?type=dist" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Distributorship</a>
+          <a href="privacy-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Privacy Policy</a>
+          <a href="cookie-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Cookie Policy</a>
+          <a href="terms" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Terms of Use</a>
         </div>
       </div>
     </div>
-    <img data-rv="" src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block">
+    <div data-rv="" style="display:flex;flex-direction:column;gap:clamp(12px,1.6vw,20px)"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block"><span style="font-size:clamp(11px,1.3vw,17px);font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></div>
     <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868;border-top:1px solid #2A2A2A;padding-top:24px">
       <span>© 2026 SAP — A Quality Product</span><span>Architectural Furniture Fitting</span>
     </div>
@@ -251,7 +284,7 @@ input::placeholder{color:#8D8E8E}
     <sc-if value="{{ hasPrev }}" hint-placeholder-val="{{ false }}"><img data-src="{{ prevSrc }}" alt="" data-gen="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s"></sc-if>
   </div>
 </div>
-<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"></div>
+<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"><span style="font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#8D8E8E;white-space:nowrap">Architectural &amp; Furniture Fittings</span></div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;imageMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;generated&quot;,&quot;placeholder&quot;],&quot;default&quot;:&quot;generated&quot;,&quot;tsType&quot;:&quot;'generated'|'placeholder'&quot;},&quot;indexPreview&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
 // Content comes from the CMS database (injected by the server as window.__SAP_DATA).
@@ -380,8 +413,8 @@ class Component extends DCLogic {
       collections,
       marquee: [...COLS, ...COLS].map(c => ({ id: c.id, name: c.name })),
       featured: D.featured.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean).map((p, i) => CARD(p, i)),
-      slideTotal: String(SLIDES.length).padStart(2, '0'), totalCount: PRODUCTS.length, colCount: COLS.length, totalWords: WORDS(PRODUCTS.length),
-      catalogues: D.catalogues.map((k, i) => ({ id: k.key, delay: i * 120, tag: 'Catalogue ' + String(i + 1).padStart(2, '0'), first: k.name.charAt(0), rest: k.name.slice(1), pages: k.pages, count: k.count })),
+      slideTotal: String(SLIDES.length).padStart(2, '0'), hasDocs: D.documents.length > 0, docs: D.documents.map((d, i) => ({ ...d, hasCover: !!d.cover, delay: (i % 4) * 70 })), totalCount: PRODUCTS.length, colCount: COLS.length, totalWords: WORDS(PRODUCTS.length),
+      catalogues: D.catalogues.map((k, i) => ({ hasDl: !!D.documents.find(d => d.cat === k.key), dl: (D.documents.find(d => d.cat === k.key) || {}).download || '#', id: k.key, delay: i * 120, tag: 'Catalogue ' + String(i + 1).padStart(2, '0'), first: k.name.charAt(0), rest: k.name.slice(1), pages: k.pages, count: k.count })),
       sliderRef: this.sliderRef, dragRef: this.dragRef,
       onSlMove: e => {
         const box = this.sliderRef.current, c = this.dragRef.current; if (!box || !c) return;

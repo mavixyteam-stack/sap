@@ -242,6 +242,111 @@
     if (n < 150) setTimeout(function () { guard(n + 1); }, 100);
   })(0);
 
-  window.SAP = { fx: { mount: mount, scan: scan, pulse: pulse, release: release, loader: loader }, enq: enq };
+  /* ---------- enquiry form (pop-up) ---------- */
+  function enquire(ctx) {
+    ctx = ctx || {};
+    if (document.getElementById('sap-enq-modal')) return;
+    var prevFocus = document.activeElement;
+    var wrap = el('div', 'position:fixed;inset:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(28,28,28,0);backdrop-filter:blur(0px);transition:background .35s,backdrop-filter .35s;font-family:\'Geist\',system-ui,sans-serif', document.body);
+    wrap.id = 'sap-enq-modal'; wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true'); wrap.setAttribute('aria-label', 'Enquiry form');
+    var card = el('div', 'position:relative;width:min(100%,520px);max-height:calc(100vh - 32px);overflow:auto;background:#EFEFEF;color:#1C1C1C;border-radius:4px;padding:clamp(22px,3vw,36px);box-shadow:0 30px 80px rgba(0,0,0,.28);opacity:0;transform:translateY(18px) scale(.985);transition:opacity .35s,transform .45s ' + E, wrap);
+    var close = el('button', 'position:absolute;right:14px;top:14px;width:36px;height:36px;border-radius:999px;border:1px solid #C8C9C9;background:transparent;font-size:16px;cursor:pointer;color:#1C1C1C', card, '✕');
+    close.setAttribute('aria-label', 'Close');
+    el('span', 'font-size:13px;color:#676868', card, ctx.name ? 'Enquiry · ' + (ctx.code || '') : 'Enquiry');
+    var title = el('h2', 'margin:8px 44px 0 0;font-size:clamp(24px,3vw,32px);font-weight:500;letter-spacing:-.04em;line-height:1.05', card, ctx.name ? 'Enquire about ' + ctx.name : 'Send an enquiry');
+    var form = el('form', 'display:flex;flex-direction:column;gap:16px;margin-top:22px', card);
+    form.noValidate = true;
+    var fields = {};
+    function field(key, label, type, req, auto) {
+      var l = el('label', 'display:flex;flex-direction:column;gap:4px;font-size:12px;color:#676868', form, label + (req ? ' *' : ''));
+      var i = el(type === 'textarea' ? 'textarea' : 'input', 'font:inherit;font-size:16px;color:#1C1C1C;padding:8px 0;border:0;border-bottom:1px solid #C8C9C9;background:transparent;outline:0;border-radius:0;resize:vertical;min-height:' + (type === 'textarea' ? '70px' : '0') + ';transition:border-color .2s', l);
+      if (type !== 'textarea') i.type = type;
+      i.name = key; if (auto) i.autocomplete = auto; if (req) i.setAttribute('aria-required', 'true');
+      i.addEventListener('focus', function () { i.style.borderBottomColor = '#1C1C1C'; });
+      i.addEventListener('blur', function () { i.style.borderBottomColor = '#C8C9C9'; });
+      fields[key] = i; return i;
+    }
+    field('name', 'Your name', 'text', true, 'name');
+    field('phone', 'Phone', 'tel', true, 'tel');
+    field('email', 'Email', 'email', false, 'email');
+    field('city', 'City', 'text', false, 'address-level2');
+    var msg = field('message', 'Message (optional)', 'textarea', false);
+    msg.value = ctx.name ? 'I would like to know more about ' + ctx.name + (ctx.code ? ' (' + ctx.code + ')' : '') + '.' : '';
+    var hp = el('input', 'position:absolute;left:-9999px;opacity:0;height:0', form); hp.type = 'text'; hp.name = 'website'; hp.tabIndex = -1; hp.autocomplete = 'off'; hp.setAttribute('aria-hidden', 'true');
+    var err = el('span', 'font-size:14px;color:#B0362F;min-height:0', form);
+    err.setAttribute('role', 'alert');
+    var go = el('button', 'height:54px;border-radius:999px;border:0;background:#00A65B;color:#1C1C1C;font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background .3s,transform .2s', form, 'Send enquiry');
+    go.type = 'submit';
+    go.addEventListener('mouseenter', function () { go.style.background = '#22B56E'; });
+    go.addEventListener('mouseleave', function () { go.style.background = '#00A65B'; });
+    var note = el('span', 'font-size:12px;line-height:1.5;color:#8D8E8E', form);
+    note.innerHTML = 'By sending this you agree to be contacted about your enquiry. See our <a href="privacy-policy" style="text-decoration:underline;color:#676868">Privacy Policy</a>.';
+
+    function shut() {
+      document.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow;
+      wrap.style.background = 'rgba(28,28,28,0)'; card.style.opacity = '0'; card.style.transform = 'translateY(12px)';
+      setTimeout(function () { wrap.remove(); if (prevFocus && prevFocus.focus) prevFocus.focus(); }, 300);
+    }
+    function onKey(e) { if (e.key === 'Escape') shut(); }
+    var prevOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    close.addEventListener('click', shut);
+    wrap.addEventListener('mousedown', function (e) { if (e.target === wrap) shut(); });
+    void card.offsetWidth;  // force a layout so the transition starts from the hidden state
+    wrap.style.background = 'rgba(28,28,28,.55)'; wrap.style.backdropFilter = 'blur(6px)';
+    card.style.opacity = '1'; card.style.transform = 'none';
+    setTimeout(function () { fields.name.focus(); }, 120);
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); err.textContent = '';
+      if (!fields.name.value.trim() || !fields.phone.value.trim()) { err.textContent = 'Please add your name and phone number.'; (fields.name.value.trim() ? fields.phone : fields.name).focus(); return; }
+      if (fields.email.value.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fields.email.value.trim())) { err.textContent = 'That email address does not look right.'; fields.email.focus(); return; }
+      go.disabled = true; go.textContent = 'Sending…'; go.style.opacity = '.7';
+      fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        topic: 'product', name: fields.name.value, phone: fields.phone.value, email: fields.email.value, city: fields.city.value,
+        message: fields.message.value, product_id: ctx.id || '', items: 0, website: hp.value }) })
+        .then(function (r) { if (r.status === 429) throw new Error('rate'); if (!r.ok) throw new Error('send'); return r; })
+        .then(function () {
+          try { if (window.gtag) gtag('event', 'generate_lead', { value: 1, currency: 'INR', items: [{ item_id: ctx.id || '', item_name: ctx.name || '' }] }); } catch (x) {}
+          card.innerHTML = '';
+          el('span', 'display:flex;width:56px;height:56px;border-radius:999px;background:#00A65B;align-items:center;justify-content:center;font-size:26px', card, '✓');
+          el('h2', 'margin:22px 0 0;font-size:clamp(26px,3.2vw,36px);font-weight:500;letter-spacing:-.04em;line-height:1.05', card, 'Thank you, ' + (fields.name.value.trim().split(' ')[0] || '') + '.');
+          el('p', 'margin:14px 0 0;font-size:16px;line-height:1.6;color:#454646', card, ctx.name ? 'We have your enquiry about ' + ctx.name + '. Our team will get back to you shortly on ' + fields.phone.value.trim() + '.' : 'We have your enquiry. Our team will get back to you shortly.');
+          var done = el('button', 'margin-top:26px;height:50px;padding:0 26px;border-radius:999px;border:0;background:#1C1C1C;color:#EFEFEF;font:inherit;font-size:15px;font-weight:500;cursor:pointer', card, 'Close');
+          done.addEventListener('click', shut); done.focus();
+        })
+        .catch(function (x) {
+          go.disabled = false; go.textContent = 'Send enquiry'; go.style.opacity = '1';
+          err.textContent = x.message === 'rate' ? 'Too many requests just now. Please try again in a few minutes.' : 'We could not send that just now. Please try again, or call us.';
+        });
+    });
+  }
+
+  /* ---------- cookie notice + analytics (loads only after "Accept") ---------- */
+  function loadGA() {
+    var id = window.__SAP_DATA && window.__SAP_DATA.site && window.__SAP_DATA.site.ga4;
+    if (!id || window.__ga4) return; window.__ga4 = 1;
+    var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id); document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', id, { anonymize_ip: true });
+  }
+  function consent() { try { return localStorage.getItem('sap-consent'); } catch (e) { return null; } }
+  function cookieBanner(force) {
+    if (document.getElementById('sap-cookie') || (!force && consent())) return;
+    var b = el('div', 'position:fixed;left:clamp(12px,2vw,24px);bottom:clamp(12px,2vw,24px);z-index:2147483050;width:min(calc(100% - 24px),400px);background:#1C1C1C;color:#EFEFEF;border-radius:6px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.3);font-family:\'Geist\',system-ui,sans-serif;opacity:0;transform:translateY(16px);transition:opacity .5s,transform .6s ' + E, document.body);
+    b.id = 'sap-cookie'; b.setAttribute('role', 'region'); b.setAttribute('aria-label', 'Cookie notice');
+    var t = el('p', 'margin:0;font-size:14px;line-height:1.55;color:#D6D7D7', b);
+    t.innerHTML = 'We use essential cookies to make this site work and, if you allow, analytics cookies to help us improve it. <a href="cookie-policy" style="color:#EFEFEF;text-decoration:underline">Cookie Policy</a>';
+    var row = el('div', 'display:flex;gap:8px;margin-top:16px;flex-wrap:wrap', b);
+    function pick(v) { try { localStorage.setItem('sap-consent', v); } catch (e) {} if (v === 'all') loadGA(); b.style.opacity = '0'; b.style.transform = 'translateY(16px)'; setTimeout(function () { b.remove(); }, 500); }
+    var yes = el('button', 'padding:11px 20px;border-radius:999px;border:0;background:#00A65B;color:#1C1C1C;font:inherit;font-size:14px;font-weight:500;cursor:pointer', row, 'Accept');
+    var no = el('button', 'padding:11px 20px;border-radius:999px;border:1px solid #4B4C4E;background:transparent;color:#EFEFEF;font:inherit;font-size:14px;font-weight:500;cursor:pointer', row, 'Essential only');
+    yes.addEventListener('click', function () { pick('all'); }); no.addEventListener('click', function () { pick('essential'); });
+    void b.offsetWidth; b.style.opacity = '1'; b.style.transform = 'none';
+  }
+  if (consent() === 'all') loadGA();
+  setTimeout(function () { if (!/^\/admin/.test(location.pathname)) cookieBanner(); }, 2600);
+
+  window.SAP = { fx: { mount: mount, scan: scan, pulse: pulse, release: release, loader: loader }, enq: enq, enquire: enquire, cookies: function () { cookieBanner(true); } };
   (function wait(n) { if (document.getElementById('sap-loader')) loader(); else if (n < 200) setTimeout(function () { wait(n + 1); }, 25); })(0);
 })();

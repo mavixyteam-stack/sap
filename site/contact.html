@@ -41,7 +41,7 @@ input::placeholder{color:#8D8E8E}
 
 <header data-hdr="" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(239,239,239,.82);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .3s">
   <div style="max-width:1440px;margin:0 auto;padding:16px clamp(20px,4vw,56px);display:flex;align-items:center;justify-content:space-between;gap:24px">
-    <a href="index.html" aria-label="SAP home" style="display:block;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <a href="index.html" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:none;transition:opacity .3s" style-hover="opacity:.75"><img src="assets/sap-logo.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#676868">Architectural &amp; Furniture Fittings</span></a>
     <nav style="display:flex;align-items:center;gap:clamp(10px,2.6vw,36px);font-size:14px;font-weight:450">
       <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
       <a href="index.html" style="opacity:{{ navHome }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navHomeU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Home</a>
@@ -50,7 +50,7 @@ input::placeholder{color:#8D8E8E}
       <a href="index.html#catalogues" style="opacity:{{ navCatalogues }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navCataloguesU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">Catalogues</a>
       <a href="about.html" style="opacity:{{ navAbout }};padding:4px 0;background-image:linear-gradient(#1C1C1C,#1C1C1C);background-repeat:no-repeat;background-position:left bottom;background-size:{{ navAboutU }};transition:opacity .3s,background-size .5s cubic-bezier(.2,.7,.2,1)" style-hover="opacity:1;background-size:100% 1px">About</a>
       </sc-if>
-      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<sc-if value="{{ hasEnq }}" hint-placeholder-val="{{ false }}"><span data-badge="" style="min-width:20px;height:20px;border-radius:999px;background:#1C1C1C;color:#EFEFEF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px">{{ enqCount }}</span></sc-if><span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
+      <a href="contact.html" data-mag="" data-hov="" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-weight:500;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="color:#1C1C1C;background:#22B56E" style-active="transform:scale(.96)">Contact<span data-hx="translateX(3px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></a>
       <sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleMenu }}" aria-label="Open menu" style-active="transform:scale(.94)" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 6px 0 14px;border-radius:999px;border:1px solid #C8C9C9;background:transparent;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Menu<span style="width:28px;height:28px;border-radius:999px;background:#1C1C1C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="width:12px;height:1.5px;background:#EFEFEF"></span><span style="width:12px;height:1.5px;background:#EFEFEF"></span></span></button></sc-if>
     </nav>
   </div>
@@ -60,7 +60,7 @@ input::placeholder{color:#8D8E8E}
 <div data-menu="" aria-hidden="{{ menuHidden }}" style="position:fixed;inset:0;z-index:2147482000;background:#1C1C1C;color:#EFEFEF;clip-path:{{ mClip }};-webkit-clip-path:{{ mClip }};transition:{{ mClipT }};pointer-events:{{ mPe }};display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain">
   <div style="position:fixed;width:140vmax;height:140vmax;right:-70vmax;top:-70vmax;border-radius:999px;background:#00A65B;transform:{{ mBlobTf }};transition:{{ mBlobT }};pointer-events:none"></div>
   <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(20px,4vw,56px)">
-    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP home" style="display:block;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"></a>
+    <a href="index.html" onClick="{{ closeMenu }}" aria-label="SAP Hardware home" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;opacity:{{ mFade }};transition:opacity .5s ease {{ mLogoD }}"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="height:clamp(38px,5vw,52px);width:auto;display:block"><span style="display:block;width:0;min-width:100%;font-size:7.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;line-height:1.3;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></a>
     <button onClick="{{ closeMenu }}" aria-label="Close menu" style-active="transform:scale(.9)" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 16px;border-radius:999px;border:1px solid #3A3B3B;background:transparent;color:#EFEFEF;font-size:14px;font-weight:500;cursor:pointer;transition:transform .2s">Close<span style="width:32px;height:32px;border-radius:999px;background:#00A65B;color:#1C1C1C;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transform:{{ mXTf }};transition:transform .9s cubic-bezier(.2,1.3,.3,1) .35s">×</span></button>
   </div>
   <nav style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:24px clamp(20px,4vw,56px)">
@@ -101,7 +101,7 @@ input::placeholder{color:#8D8E8E}
                 <button type="button" onClick="{{ t.pick }}" style-active="transform:scale(.96)" style="padding:11px 18px;border-radius:999px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};font-size:14px;font-weight:500;cursor:pointer;transition:background .3s,color .3s,border-color .3s,transform .2s">{{ t.label }}</button>
               </sc-for>
             </div>
-            <sc-if value="{{ showEnqNote }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3A3B3B"><span style="width:8px;height:8px;border-radius:999px;background:#00A65B"></span>{{ enqNote }}</span></sc-if>
+
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:clamp(28px,3vw,40px) clamp(24px,3vw,40px)">
             <sc-for list="{{ fields }}" as="fd" hint-placeholder-count="4">
@@ -117,6 +117,7 @@ input::placeholder{color:#8D8E8E}
           </label>
           <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
             <button type="submit" data-mag="" data-hov="" style-active="transform:scale(.97)" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;border:none;background:#00A65B;color:#1C1C1C;font-size:15px;font-weight:500;cursor:pointer;transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s" style-hover="background:#22B56E">Send message <span data-hx="translateX(4px)" style="display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)">→</span></button>
+            <span style="font-size:12px;line-height:1.5;color:#8D8E8E;max-width:420px">By sending this you agree to be contacted about your enquiry. See our <a href="privacy-policy" style="text-decoration:underline">Privacy Policy</a>.</span>
             <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;color:#B0362F">{{ errMsg }}</span></sc-if>
           </div>
         </form>
@@ -181,7 +182,7 @@ input::placeholder{color:#8D8E8E}
     <div style="display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap">
       <div style="display:flex;flex-direction:column;gap:28px;max-width:520px">
         <h2 style="margin:0;font-size:clamp(34px,4.4vw,60px);font-weight:500;letter-spacing:-.045em;line-height:1">Specifying a project?</h2>
-        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Build an enquiry list from any series and our team will come back with drawings, finishes and project pricing.</p>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#A2A3A3">Tell us about your project and our team will come back with drawings, finishes and project support.</p>
         <a href="contact.html" data-mag="" style-active="transform:scale(.97)" style="transition:transform .5s cubic-bezier(.2,.7,.2,1),background .3s;align-self:flex-start;padding:15px 24px;border-radius:999px;background:#00A65B;color:#1C1C1C;font-size:15px;font-weight:500" style-hover="color:#1C1C1C;background:#22B56E">Start an enquiry</a>
       </div>
       <div style="flex:1 1 300px;max-width:620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:32px 48px;font-size:14px">
@@ -200,17 +201,20 @@ input::placeholder{color:#8D8E8E}
           <a href="about.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">About us</a>
           <a href="contact.html" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Contact</a>
           <a href="contact.html?type=dist" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Distributorship</a>
+          <a href="privacy-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Privacy Policy</a>
+          <a href="cookie-policy" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Cookie Policy</a>
+          <a href="terms" style="color:#D6D7D7;transition:color .3s" style-hover="color:#00A65B">Terms of Use</a>
         </div>
       </div>
     </div>
-    <img data-rv="" src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block">
+    <div data-rv="" style="display:flex;flex-direction:column;gap:clamp(12px,1.6vw,20px)"><img src="assets/sap-logo-light.svg" alt="SAP — A Quality Product" style="width:min(100%,560px);height:auto;display:block"><span style="font-size:clamp(11px,1.3vw,17px);font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#A2A3A3">Architectural &amp; Furniture Fittings</span></div>
     <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:#676868;border-top:1px solid #2A2A2A;padding-top:24px">
       <span>© 2026 SAP — A Quality Product</span><span>Architectural Furniture Fitting</span>
     </div>
   </div>
 </footer>
 
-<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"></div>
+<div data-curtain="" aria-hidden="true" style="position:fixed;inset:0;z-index:2147483000;background:#1C1C1C;transform:translateY(100%);pointer-events:none;display:flex;align-items:center;justify-content:center"><div style="display:flex;flex-direction:column;align-items:center;gap:10px"><img src="assets/sap-logo-light.svg" alt="" style="width:120px;height:auto;opacity:.9"><span style="font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#8D8E8E;white-space:nowrap">Architectural &amp; Furniture Fittings</span></div></div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{}">
 // Content comes from the CMS database (injected by the server as window.__SAP_DATA).
@@ -278,7 +282,7 @@ const QS = k => { try { return new URLSearchParams(location.search).get(k); } ca
 
 const CENTERS = D.centers;
 const TEL = p => 'tel:' + p.replace(/[^\d+]/g, '');
-const CENTERS_V = () => CENTERS.map((c, i) => ({ ...c, num: '0' + (i + 1), delay: i * 80, tel: TEL(c.phone), map: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.addr) }));
+const CENTERS_V = () => CENTERS.map((c, i) => ({ ...c, num: '0' + (i + 1), delay: i * 80, tel: TEL(c.phone), map: c.map ? c.map : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(c.addr) }));
 
 class Component extends DCLogic {
   state = (() => { const t = QS('type'); return { enq: ENQ0(), topic: t === 'dist' ? 'dist' : t === 'visit' ? 'visit' : 'product', v: { name: '', phone: '', email: '', city: '' }, msg: '', sent: false, err: false, ok: false }; })();
@@ -304,12 +308,11 @@ class Component extends DCLogic {
     return {
       ...MOBV(this), ...NAV('Contact'), enqCount: enq, collections: COLS,
       topics: T.map(([id, label]) => { const on = topic === id; return { label, bg: on ? '#1C1C1C' : 'transparent', fg: on ? '#EFEFEF' : '#1C1C1C', bd: on ? '#1C1C1C' : '#C8C9C9', pick: () => this.setState({ topic: id }) }; }),
-      showEnqNote: topic === 'product' && enq > 0, enqNote: enq + (enq === 1 ? ' item' : ' items') + ' from your enquiry list will be included.',
       fields: F.map(([k, label, type, ph, ac]) => ({ label: label + (k === 'name' || k === 'phone' ? ' *' : ''), type, ph, ac, value: v[k], line: err && (k === 'name' || k === 'phone') && !v[k].trim() ? '#B0362F' : '#C8C9C9', on: e => { const val = e.target.value; this.setState(s => ({ v: { ...s.v, [k]: val } })); } })),
       msg: this.state.msg, onMsg: e => this.setState({ msg: e.target.value }), msgPh: PH[topic],
       hasErr: err, errMsg: this.state.netErr ? 'We could not send that just now. Please try again, or call us.' : 'Please add your name and phone number.', notSent: !sent, sent,
       submit: e => { e.preventDefault(); if (!v.name.trim() || !v.phone.trim()) { this.setState({ err: true, netErr: false }); return; }
-        fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, name: v.name, phone: v.phone, email: v.email, city: v.city, message: this.state.msg, items: topic === 'product' ? enq : 0 }) })
+        fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, name: v.name, phone: v.phone, email: v.email, city: v.city, message: this.state.msg, items: 0, website: '' }) })
           .then(r => { if (!r.ok) throw new Error('send'); this.setState({ sent: true, err: false, netErr: false, ok: false }); setTimeout(() => this.setState({ ok: true }), 60); if (window.scrollTo) window.scrollTo({ top: 0, behavior: 'smooth' }); })
           .catch(() => this.setState({ err: true, netErr: true })); },
       okTf: this.state.ok ? 'scale(1)' : 'scale(0)',

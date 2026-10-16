@@ -18,6 +18,16 @@ The redesigned site, unchanged visually, now driven by PostgreSQL with an admin 
 - **Contact details** — display centres and offices.
 - **Settings** — change password, edit finish colours.
 
+## After first deploy: set up these in Admin
+
+1. **Settings → Enquiry emails** — add the sending mailbox (for Gmail use smtp.gmail.com, port 587 and an *App password*) and the addresses that should receive enquiries. Use "Send a test email".
+2. **Settings → Google & search** — paste the Google Analytics 4 ID and Search Console verification code once the real domain is live. Analytics loads only for visitors who accept cookies.
+3. **About & legal** — review the founder page and the Privacy / Cookie / Terms texts (they are drafts; have them checked by your legal adviser).
+4. **Downloads** — add catalogue PDFs as Google Drive links with a cover picture.
+5. **Contact details** — paste a Google Maps link for each display centre.
+
+SEO is automatic: every page gets its own title, description, canonical URL, Open Graph / Twitter tags, structured data (Organization, Product, Breadcrumb, LocalBusiness), a generated 1200x630 share image, `/sitemap.xml` and `/robots.txt`.
+
 ## Deploy on Coolify (Hostinger VPS)
 
 1. Push this folder to a **private** Git repo (GitHub/GitLab).

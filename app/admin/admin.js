@@ -52,6 +52,9 @@
     var l = h('label', { class: 'toggle' }, i, label);
     l.input = i; return l;
   }
+  function logoBlock() {
+    return h('div', { class: 'logoblock' }, h('img', { src: '/assets/sap-logo.svg', alt: 'SAP Hardware' }), h('span', null, 'Architectural & Furniture Fittings'));
+  }
   function field(label, input, hint) { return h('label', { class: 'f' }, label, input, hint ? h('span', { class: 'hint' }, hint) : null); }
   function confirmBox(msg) { return window.confirm(msg); }
 
@@ -126,15 +129,15 @@
   }
 
   /* ---------- shell ---------- */
-  var NAV = [['dashboard', 'Overview'], ['categories', 'Categories'], ['products', 'Products'], ['home', 'Home page'],
-    ['enquiries', 'Enquiries'], ['contact', 'Contact details'], ['settings', 'Settings']];
+  var NAV = [['dashboard', 'Overview'], ['categories', 'Categories'], ['products', 'Products'], ['home', 'Home page'], ['downloads', 'Downloads'],
+    ['enquiries', 'Enquiries'], ['contact', 'Contact details'], ['pages', 'About & legal'], ['settings', 'Settings']];
 
   function render() {
     clear(app);
     if (!state.user) return renderLogin();
     var main = h('main', { class: 'main' });
     var side = h('nav', { class: 'side' },
-      h('img', { src: '/assets/sap-logo.svg', alt: 'SAP Hardware' }),
+      logoBlock(),
       NAV.map(function (n) {
         var a = h('a', { class: 'nav' + (state.view === n[0] ? ' on' : ''), href: '#' + n[0], onclick: function (e) { e.preventDefault(); go(n[0]); } }, n[1]);
         if (n[0] === 'enquiries' && state.newEnq) a.appendChild(h('span', { class: 'count' }, String(state.newEnq)));
@@ -171,7 +174,7 @@
       api('/login', 'POST', { email: email.value, password: pw.value }).then(function (u) { state.user = u; render(); refreshBadge(); },
         function (er) { err.textContent = er.message; });
     } },
-      h('img', { src: '/assets/sap-logo.svg', alt: 'SAP Hardware' }),
+      logoBlock(),
       h('div', null, h('h1', null, 'Admin sign in'), h('p', { class: 'muted', style: 'margin:8px 0 0' }, 'Manage categories, products and the home page.')),
       field('Email', email), field('Password', pw), err, h('button', { class: 'btn green', type: 'submit', style: 'align-self:flex-start' }, 'Sign in'));
     app.appendChild(h('div', { class: 'login' }, form));
@@ -195,6 +198,12 @@
     var box = h('div'); main.appendChild(box);
     api('/summary').then(function (s) {
       state.newEnq = s.enquiries_new;
+      api('/settings/email').then(function (e) {
+        if (e.host || e.from_env) return;
+        box.insertBefore(h('div', { class: 'card', style: 'margin-bottom:14px;background:#F5E3A8' }, h('h2', null, 'Enquiry emails are not set up yet'),
+          h('p', { class: 'small', style: 'margin:8px 0 14px' }, 'Enquiries are saved here, but the team will not get an email until you add the mail settings.'),
+          h('a', { class: 'btn sm', href: '#settings', onclick: function (ev) { ev.preventDefault(); go('settings'); } }, 'Set up email')), box.firstChild);
+      }).catch(function () {});
       box.appendChild(h('div', { class: 'cards' },
         stat(s.products_live, 'Products live', s.products + ' in total'),
         stat(s.collections_live, 'Categories live', s.collections + ' in total'),
@@ -435,6 +444,7 @@
         return b;
       }));
       var desc = h('textarea', { maxlength: 1500, placeholder: 'A short overview of the system and what it is used for.' }, p.description);
+      var seoT = h('input', { type: 'text', maxlength: 90, value: p.seo_title || '' }), seoD = h('textarea', { maxlength: 200, style: 'min-height:64px' }, p.seo_desc || '');
       var pic = imagePicker(p.image, 'Main photo', 'Shown on the product list and at the top of the product page.');
       var gal = galleryPicker(p.gallery);
       var subs = (p.subs || []).map(function (s) { return [s[0], s[1]]; });
@@ -464,13 +474,16 @@
         field('Overview', desc), pic, gal,
         field('Sub-systems (optional)', subsBox, 'Named parts of the series with their catalogue page, e.g. “Synchro Sliding — 18”.'),
         h('div', { class: 'stack', style: 'gap:12px' }, isNewTog, feat, vis),
-        h('details', null, h('summary', { class: 'muted small', style: 'cursor:pointer' }, 'More options (material, finishes)'),
-          h('div', { class: 'stack', style: 'margin-top:14px' }, field('Material', mat), matList, field('Finishes', sw)))
+        h('details', null, h('summary', { class: 'muted small', style: 'cursor:pointer' }, 'Search & sharing (optional), material, finishes'),
+          h('div', { class: 'stack', style: 'margin-top:14px' },
+            field('Search title', seoT, 'What Google shows as the page title. Leave empty to use “Name — Category | SAP Hardware”.'),
+            field('Search description', seoD, 'About 150 characters. Leave empty to use the overview above.'),
+            field('Material', mat), matList, field('Finishes', sw)))
       ], function () {
         var body = { name: name.value, collection_id: col.value, catalogue_key: cat.value, code: code.value, pages: pages.value,
           material: mat.value, finishes: state.fins.map(function (x) { return x.name; }).filter(function (n) { return chosen[n]; }),
           description: desc.value, image: pic.get(), gallery: gal.get(), is_new: isNewTog.input.checked, active: vis.input.checked,
-          subs: subs.filter(function (s) { return s[0].trim(); }) };
+          subs: subs.filter(function (s) { return s[0].trim(); }), seo_title: seoT.value, seo_desc: seoD.value };
         if (!body.name.trim()) return Promise.reject(new Error('Please enter a product name'));
         return api('/products' + (isNew ? '' : '/' + encodeURIComponent(p.id)), isNew ? 'POST' : 'PUT', body).then(function (r) {
           var pid = isNew ? r.id : p.id, want = feat.input.checked;
@@ -598,7 +611,8 @@
         box.appendChild(h('div', { class: 'card', style: r.status === 'done' ? 'opacity:.6' : '' },
           h('div', { class: 'row', style: 'justify-content:space-between;align-items:flex-start' },
             h('div', null, h('h2', null, r.name, r.status === 'new' ? h('span', { class: 'pill g' }, 'New') : null),
-              h('div', { class: 'small muted', style: 'margin-top:4px' }, (TOPIC[r.topic] || r.topic) + ' · ' + d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))),
+              h('div', { class: 'small muted', style: 'margin-top:4px' }, (TOPIC[r.topic] || r.topic) + ' · ' + d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })),
+              r.product_name ? h('div', { style: 'margin-top:8px;font-weight:500' }, 'About: ', r.page_url ? h('a', { href: r.page_url, target: '_blank', rel: 'noopener' }, r.product_name) : r.product_name) : null),
             h('div', { class: 'row' },
               h('button', { class: 'btn ghost sm', onclick: function () {
                 api('/enquiries/' + r.id, 'PUT', { status: r.status === 'new' ? 'done' : 'new' }).then(function () { refresh(); }).catch(fail);
@@ -609,7 +623,7 @@
           h('div', { class: 'row small', style: 'margin-top:12px;gap:18px' },
             h('a', { href: 'tel:' + r.phone.replace(/[^\d+]/g, '') }, r.phone),
             r.email ? h('a', { href: 'mailto:' + r.email }, r.email) : null, r.city ? h('span', null, r.city) : null,
-            r.items_count ? h('span', { class: 'muted' }, r.items_count + ' item(s) in their enquiry list') : null),
+            r.mail_status && r.mail_status !== 'sent' ? h('span', { class: 'muted', title: r.mail_status }, 'Email: ' + (r.mail_status.indexOf('failed') === 0 ? 'could not be sent' : 'not set up')) : null),
           r.message ? h('p', { style: 'margin:12px 0 0;white-space:pre-wrap' }, r.message) : null));
       });
     }
@@ -623,9 +637,9 @@
     var cBox = h('div', { class: 'stack' }), oBox = h('div', { class: 'stack' });
     var centers = [], offices = [];
     main.appendChild(h('div', { class: 'section', style: 'margin-top:0' }, h('h2', null, 'Display centres'), h('p', { class: 'muted small', style: 'margin:6px 0 14px' }, 'Shown as numbered cards.'), cBox,
-      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { centers.push({ city: '', addr: '', phone: '' }); paintC(); } }, '+ Add display centre'))));
+      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { centers.push({ city: '', addr: '', phone: '', map: '' }); paintC(); } }, '+ Add display centre'))));
     main.appendChild(h('div', { class: 'section' }, h('h2', null, 'Offices'), h('p', { class: 'muted small', style: 'margin:6px 0 14px' }, 'Head office and branches on the Contact page.'), oBox,
-      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { offices.push({ tag: '', addr: '', phones: [], email: '' }); paintO(); } }, '+ Add office'))));
+      h('div', { style: 'margin-top:12px' }, h('button', { class: 'btn ghost sm', onclick: function () { offices.push({ tag: '', addr: '', phones: [], email: '', map: '' }); paintO(); } }, '+ Add office'))));
     main.appendChild(h('div', { style: 'margin-top:28px' }, h('button', { class: 'btn green', onclick: function () {
       api('/contact-info', 'PUT', { centers: centers.filter(function (c) { return c.city.trim(); }), offices: offices.filter(function (o) { return o.tag.trim(); }) })
         .then(function () { toast('Saved'); }).catch(fail);
@@ -637,6 +651,7 @@
         cBox.appendChild(h('div', { class: 'card stack', style: 'gap:12px' },
           h('div', { class: 'grid2' }, field('City', bind(c, 'city', h('input', { type: 'text', value: c.city }))), field('Phone', bind(c, 'phone', h('input', { type: 'text', value: c.phone })))),
           field('Address', bind(c, 'addr', h('input', { type: 'text', value: c.addr }))),
+          field('Google Maps link (optional)', bind(c, 'map', h('input', { type: 'text', value: c.map || '', placeholder: 'https://maps.app.goo.gl/…' })), 'Open Google Maps, find the display centre, press Share → Copy link, and paste it here. The “Open in Maps” button will use it.'),
           h('div', null, h('button', { class: 'btn danger sm', onclick: function () { centers.splice(i, 1); paintC(); } }, 'Remove'))));
       });
     }
@@ -649,6 +664,7 @@
           h('div', { class: 'grid2' }, field('Label', bind(o, 'tag', h('input', { type: 'text', value: o.tag, placeholder: 'Head office · Bengaluru' }))), field('Email', bind(o, 'email', h('input', { type: 'text', value: o.email })))),
           field('Address', bind(o, 'addr', h('input', { type: 'text', value: o.addr }))),
           field('Phone numbers', phones, 'Separate with commas.'),
+          field('Google Maps link (optional)', bind(o, 'map', h('input', { type: 'text', value: o.map || '', placeholder: 'https://maps.app.goo.gl/…' }))),
           h('div', null, h('button', { class: 'btn danger sm', onclick: function () { offices.splice(i, 1); paintO(); } }, 'Remove'))));
       });
     }
@@ -683,6 +699,177 @@
       });
     }
     api('/finishes').then(function (r) { fins = r.map(function (x) { return { name: x.name, color: x.color }; }); paintF(); }).catch(fail);
+
+    /* --- enquiry emails --- */
+    var emailBox = h('div', { class: 'card stack', style: 'max-width:620px' });
+    main.appendChild(h('div', { class: 'section' }, h('h2', null, 'Enquiry emails'),
+      h('p', null, 'When someone sends an enquiry, the SAP team gets an email with the product name and a link to its page. Every enquiry is also saved under Enquiries.'), emailBox));
+    api('/settings/email').then(function (e) {
+      var to = h('input', { type: 'text', value: (e.to || []).join(', '), placeholder: 'sales@yourcompany.com, owner@yourcompany.com' });
+      var host = h('input', { type: 'text', value: e.host, placeholder: 'smtp.gmail.com' }), port = h('input', { type: 'text', value: e.port });
+      var user = h('input', { type: 'text', value: e.user, placeholder: 'the sending email address', autocomplete: 'off' });
+      var pass = h('input', { type: 'password', value: '', placeholder: e.has_password ? '•••••••• (saved; leave blank to keep)' : 'App password', autocomplete: 'new-password' });
+      var from = h('input', { type: 'text', value: e.from_addr, placeholder: 'defaults to the sending address' });
+      emailBox.appendChild(h('div', { class: 'stack' },
+        e.from_env ? h('div', { class: 'small', style: 'color:var(--green)' }, 'Mail server settings are provided by the server configuration and take priority.') : null,
+        field('Send enquiry emails to', to, 'Separate several addresses with commas.'),
+        h('div', { class: 'grid2' }, field('Mail server (SMTP)', host), field('Port', port, '587 for most providers')),
+        h('div', { class: 'grid2' }, field('Login (email address)', user), field('Password', pass, 'For Gmail, create an “App password” in your Google account security settings.')),
+        field('Show as sender', from),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn green sm', onclick: function () {
+            api('/settings/email', 'PUT', { to: to.value.split(','), host: host.value, port: parseInt(port.value, 10) || 587, user: user.value, password: pass.value, from_addr: from.value, from_name: '' })
+              .then(function () { toast('Saved'); pass.value = ''; }).catch(fail);
+          } }, 'Save email settings'),
+          h('button', { class: 'btn ghost sm', onclick: function () {
+            api('/settings/email/test', 'POST').then(function (r) { toast('Test email sent to ' + r.sent_to.join(', ')); }).catch(fail);
+          } }, 'Send a test email'))));
+    }).catch(fail);
+
+    /* --- google & search --- */
+    var seoBox = h('div', { class: 'card stack', style: 'max-width:620px' });
+    main.appendChild(h('div', { class: 'section' }, h('h2', null, 'Google & search'),
+      h('p', null, 'Titles, descriptions, share previews and structured data are generated automatically for every page. These settings connect the site to Google tools.'), seoBox));
+    api('/settings/site').then(function (s) {
+      var desc = h('textarea', { maxlength: 400 }, s.description), ga = h('input', { type: 'text', value: s.ga4, placeholder: 'G-XXXXXXXXXX' });
+      var gsc = h('input', { type: 'text', value: s.gsc_verification, placeholder: 'verification code' }), bing = h('input', { type: 'text', value: s.bing_verification, placeholder: 'verification code' });
+      var url = h('input', { type: 'text', value: s.site_url, placeholder: 'https://www.yourdomain.com (leave empty to detect automatically)' });
+      var pic = imagePicker(s.share_image, 'Default share picture (optional)', 'Used when a page is shared on WhatsApp or social media and has no picture of its own. Leave empty to use the generated one.');
+      seoBox.appendChild(h('div', { class: 'stack' },
+        field('Default site description', desc, 'Used on the home page and as the fallback everywhere else (about 150 characters is ideal).'),
+        field('Website address', url, 'Set this once your real domain is connected.'),
+        field('Google Analytics 4 ID', ga, 'Optional. Loads only for visitors who accept cookies.'),
+        h('div', { class: 'grid2' }, field('Google Search Console code', gsc, 'Only the code from the “HTML tag” method'), field('Bing Webmaster code', bing)), pic,
+        h('div', { class: 'row' }, h('button', { class: 'btn green sm', onclick: function () {
+          api('/settings/site', 'PUT', { description: desc.value, share_image: pic.get(), ga4: ga.value, gsc_verification: gsc.value, bing_verification: bing.value, site_url: url.value })
+            .then(function () { toast('Saved'); }).catch(fail);
+        } }, 'Save'), h('a', { class: 'btn ghost sm', href: '/sitemap.xml', target: '_blank', rel: 'noopener' }, 'View sitemap'))));
+    }).catch(fail);
+
+  };
+
+  /* ---------- downloads (PDF links + cover images) ---------- */
+  views.downloads = function (main) {
+    var list = h('div', { class: 'list' });
+    main.appendChild(header('Downloads', 'Catalogues and brochures shown on the home page. Upload each PDF to Google Drive, then paste its link here, so the website stays fast.',
+      h('button', { class: 'btn green', onclick: function () { edit(); } }, '+ Add a PDF')));
+    main.appendChild(h('div', { class: 'card small', style: 'margin-bottom:18px;line-height:1.6' },
+      h('b', null, 'How to add a PDF: '), '1) Upload the file to Google Drive. 2) Right-click it → Share → set “Anyone with the link” → Copy link. 3) Click “Add a PDF” here, paste the link and upload a cover picture.'));
+    main.appendChild(list);
+    var docs = [];
+    function paint() {
+      clear(list);
+      if (!docs.length) list.appendChild(h('div', { class: 'empty' }, 'No downloads yet.'));
+      docs.forEach(function (d, i) {
+        var move = function (dir) {
+          var ids = docs.map(function (x) { return x.id; }), j = i + dir; if (j < 0 || j >= ids.length) return;
+          var t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+          api('/documents/reorder', 'POST', { ids: ids }).then(refresh).catch(fail);
+        };
+        var catName = (state.cats || []).filter(function (k) { return k.key === d.catalogue_key; }).map(function (k) { return k.name; })[0];
+        list.appendChild(h('div', { class: 'item' + (d.active ? '' : ' off') },
+          h('div', { class: 'thumb', style: 'background:var(--line) center/cover' + (d.cover ? ';background-image:url("' + img(d.cover) + '")' : '') }),
+          h('div', { style: 'min-width:0' }, h('div', { class: 't' }, d.title, d.active ? null : h('span', { class: 'pill o' }, 'Hidden'), catName ? h('span', { class: 'pill' }, catName) : null),
+            h('div', { class: 's' }, d.note || d.url)),
+          h('div', { class: 'acts' },
+            h('a', { class: 'btn ghost sm', href: d.url, target: '_blank', rel: 'noopener' }, 'Test link'),
+            h('button', { class: 'btn ghost sm icon', disabled: i === 0, onclick: function () { move(-1); } }, '↑'),
+            h('button', { class: 'btn ghost sm icon', disabled: i === docs.length - 1, onclick: function () { move(1); } }, '↓'),
+            h('button', { class: 'btn ghost sm', onclick: function () { edit(d); } }, 'Edit'),
+            h('button', { class: 'btn danger sm', onclick: function () {
+              if (!confirmBox('Remove “' + d.title + '” from the website?')) return;
+              api('/documents/' + d.id, 'DELETE').then(function () { toast('Removed'); return refresh(); }).catch(fail);
+            } }, 'Remove'))));
+      });
+    }
+    function edit(d) {
+      var isNew = !d; d = d || { title: '', note: '', url: '', cover: '', catalogue_key: '', active: true };
+      var title = h('input', { type: 'text', value: d.title, maxlength: 120, placeholder: 'e.g. Aluminium Profile Catalogue 2026' });
+      var note = h('input', { type: 'text', value: d.note, maxlength: 200, placeholder: 'e.g. 94 pages · PDF' });
+      var url = h('input', { type: 'text', value: d.url, placeholder: 'https://drive.google.com/file/d/…/view' });
+      var pic = imagePicker(d.cover, 'Cover image', 'A picture of the first page works well (portrait, 4:5).');
+      var cat = h('select', null, h('option', { value: '' }, 'Only in the Downloads section'),
+        (state.cats || []).map(function (k) { return h('option', { value: k.key, selected: k.key === d.catalogue_key }, 'Also link from the “' + k.name + '” card'); }));
+      var vis = toggle('Visible on the website', d.active);
+      drawer(isNew ? 'Add a PDF' : 'Edit download', [field('Title', title), field('Short note (optional)', note), field('PDF link', url, 'A Google Drive share link works best. People can view it online or download it.'), pic,
+        field('Where to show it', cat, 'The catalogue cards on the home page have a “Download PDF” button; choose one to connect it.'), vis], function () {
+        var body = { title: title.value, note: note.value, url: url.value, cover: pic.get(), catalogue_key: cat.value, active: vis.input.checked };
+        if (!body.title.trim()) return Promise.reject(new Error('Please add a title'));
+        if (!/^https?:\/\//i.test(body.url.trim())) return Promise.reject(new Error('Paste the full link, starting with https://'));
+        return api('/documents' + (isNew ? '' : '/' + d.id), isNew ? 'POST' : 'PUT', body).then(function () { toast('Saved'); return refresh(); });
+      });
+    }
+    function refresh() { return Promise.all([api('/documents'), state.cats ? Promise.resolve() : load()]).then(function (r) { docs = r[0]; paint(); }).catch(fail); }
+    refresh();
+  };
+
+  /* ---------- About founder + legal pages ---------- */
+  views.pages = function (main) {
+    main.appendChild(header('About & legal pages', 'Edit the founder story on the About page, and the Privacy, Cookie and Terms pages.'));
+    var tabs = h('div', { class: 'bar' }), body = h('div'); main.appendChild(tabs); main.appendChild(body);
+    var cur = state.pgTab || 'founder';
+    [['founder', 'Founder (About page)'], ['privacy', 'Privacy Policy'], ['cookies', 'Cookie Policy'], ['terms', 'Terms of Use']].forEach(function (t) {
+      tabs.appendChild(h('button', { class: 'btn ' + (cur === t[0] ? '' : 'ghost') + ' sm', onclick: function () { state.pgTab = t[0]; render(); } }, t[1]));
+    });
+    if (cur === 'founder') founderForm(); else legalForm(cur);
+
+    function founderForm() {
+      api('/settings/founder').then(function (f) {
+        var name = h('input', { type: 'text', value: f.name }), role = h('input', { type: 'text', value: f.role });
+        var headline = h('input', { type: 'text', value: f.headline }), intro = h('textarea', null, f.intro);
+        var story = h('textarea', { style: 'min-height:260px' }, (f.story || []).join('\n\n'));
+        var vision = h('textarea', null, f.vision);
+        var pic = imagePicker(f.photo, 'Photo', 'Portrait photo (4:5) works best.');
+        var ms = (f.milestones || []).map(function (m) { return { year: m.year, label: m.label }; }), vals = (f.values || []).map(function (v) { return { title: v.title, text: v.text }; });
+        var msBox = h('div', { class: 'stack', style: 'gap:8px' }), vBox = h('div', { class: 'stack', style: 'gap:8px' });
+        function paintMs() {
+          clear(msBox);
+          ms.forEach(function (m, i) {
+            msBox.appendChild(h('div', { class: 'vrow', style: 'grid-template-columns:90px 1fr auto' },
+              h('input', { type: 'text', value: m.year, placeholder: '2013', oninput: function (e) { m.year = e.target.value; } }),
+              h('input', { type: 'text', value: m.label, placeholder: 'What happened', oninput: function (e) { m.label = e.target.value; } }),
+              h('button', { class: 'btn ghost sm icon', type: 'button', onclick: function () { ms.splice(i, 1); paintMs(); } }, '×')));
+          });
+          msBox.appendChild(h('div', null, h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { ms.push({ year: '', label: '' }); paintMs(); } }, '+ Add a milestone')));
+        }
+        function paintV() {
+          clear(vBox);
+          vals.forEach(function (v, i) {
+            vBox.appendChild(h('div', { class: 'vrow', style: 'grid-template-columns:140px 1fr auto' },
+              h('input', { type: 'text', value: v.title, placeholder: 'Honest', oninput: function (e) { v.title = e.target.value; } }),
+              h('input', { type: 'text', value: v.text, placeholder: 'One short sentence', oninput: function (e) { v.text = e.target.value; } }),
+              h('button', { class: 'btn ghost sm icon', type: 'button', onclick: function () { vals.splice(i, 1); paintV(); } }, '×')));
+          });
+          vBox.appendChild(h('div', null, h('button', { class: 'btn ghost sm', type: 'button', onclick: function () { vals.push({ title: '', text: '' }); paintV(); } }, '+ Add a value')));
+        }
+        paintMs(); paintV();
+        body.appendChild(h('div', { class: 'card stack', style: 'max-width:760px' },
+          h('div', { class: 'grid2' }, field('Name', name), field('Role', role)), pic, field('Headline', headline), field('Opening paragraph', intro),
+          field('The story', story, 'Leave a blank line between paragraphs.'), field('Vision', vision),
+          field('Milestones', msBox), field('Values', vBox),
+          h('div', null, h('button', { class: 'btn green', onclick: function () {
+            api('/settings/founder', 'PUT', { name: name.value, role: role.value, photo: pic.get(), headline: headline.value, intro: intro.value,
+              story: story.value.split(/\n\s*\n/).map(function (s) { return s.trim(); }).filter(Boolean), vision: vision.value,
+              values: vals.filter(function (v) { return v.title.trim(); }), milestones: ms.filter(function (m) { return m.label.trim(); }) })
+              .then(function () { toast('Saved. The About page is updated.'); }).catch(fail);
+          } }, 'Save founder page'), ' ', h('a', { class: 'btn ghost', href: '/about.html#founder', target: '_blank', rel: 'noopener' }, 'View page'))));
+      }).catch(fail);
+    }
+    function legalForm(key) {
+      api('/settings/legal').then(function (all) {
+        var d = all[key];
+        var title = h('input', { type: 'text', value: d.title }), upd = h('input', { type: 'text', value: d.updated, placeholder: '16 October 2026' });
+        var text = h('textarea', { style: 'min-height:480px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6' }, d.body);
+        var slug = { privacy: 'privacy-policy', cookies: 'cookie-policy', terms: 'terms' }[key];
+        body.appendChild(h('div', { class: 'card stack', style: 'max-width:820px' },
+          h('p', { class: 'muted small', style: 'margin:0;line-height:1.6' }, 'Formatting: start a line with ',  h('b', null, '## '), 'for a heading, ', h('b', null, '- '), 'for a bullet point. Plain lines are paragraphs. These texts are a starting draft; please have them reviewed by your legal adviser.'),
+          h('div', { class: 'grid2' }, field('Page title', title), field('Last updated', upd)), field('Text', text),
+          h('div', null, h('button', { class: 'btn green', onclick: function () {
+            all[key] = { title: title.value, updated: upd.value, body: text.value };
+            api('/settings/legal', 'PUT', all).then(function () { toast('Saved'); }).catch(fail);
+          } }, 'Save'), ' ', h('a', { class: 'btn ghost', href: '/' + slug, target: '_blank', rel: 'noopener' }, 'View page'))));
+      }).catch(fail);
+    }
   };
 
   /* ---------- boot ---------- */

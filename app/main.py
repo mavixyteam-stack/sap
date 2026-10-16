@@ -16,12 +16,13 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from PIL import Image, ImageOps
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field
 
-from . import auth, db
+from . import auth, db, defaults, mailer, seo
 
 HERE = Path(__file__).parent
 SITE_DIR = Path(os.environ.get("SITE_DIR", HERE.parent / "site")).resolve()
@@ -46,6 +47,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app.add_middleware(GZipMiddleware, minimum_size=800)
 
 # --------------------------------------------------------------------------- public data
 
@@ -56,10 +58,41 @@ def invalidate():
     _cache["at"] = 0.0
 
 
+def drive_links(url: str):
+    """Google Drive share links -> (view, download). Any other https link is used as-is for both."""
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:export=download&)?id=)([\w-]+)", url or "")
+    if m:
+        i = m.group(1)
+        return "https://drive.google.com/file/d/%s/view" % i, "https://drive.google.com/uc?export=download&id=%s" % i
+    return url, url
+
+
+def clean_url(u: str, field: str = "link") -> str:
+    u = (u or "").strip()
+    if u and not re.match(r"^https?://[^\s]+$", u, re.I):
+        raise HTTPException(400, "The %s must be a full web address starting with https://" % field)
+    return u
+
+
+def get_json(c, key, default):
+    v = db.get_setting(c, key, None)
+    if isinstance(default, dict):
+        return {**default, **(v or {})}
+    return v if v is not None else default
+
+
+def base_url(request: Request, site: dict) -> str:
+    env = os.environ.get("SITE_URL", "").strip().rstrip("/")
+    return env or (site.get("site_url") or "").strip().rstrip("/") or str(request.base_url).rstrip("/")
+
+
 def build_public_data():
     if _cache["data"] is not None and time.time() - _cache["at"] < 30:
         return _cache["data"]
     with db.conn() as c:
+        site_s = get_json(c, "site", defaults.SITE)
+        founder = get_json(c, "founder", defaults.FOUNDER)
+        docs = c.execute("SELECT id,title,note,url,cover,catalogue_key FROM documents WHERE active ORDER BY position,id").fetchall()
         cols = c.execute("SELECT * FROM collections WHERE active ORDER BY position, name").fetchall()
         cats = c.execute("SELECT * FROM catalogues ORDER BY position").fetchall()
         fins = c.execute("SELECT * FROM finishes ORDER BY position, name").fetchall()
@@ -93,14 +126,21 @@ def build_public_data():
         "featured": [r["id"] for r in feat],
         "centers": centers,
         "offices": offices,
+        "site": site_s,
+        "founder": founder,
+        "documents": [{"id": r["id"], "title": r["title"], "note": r["note"], "cover": r["cover"], "cat": r["catalogue_key"],
+                       "view": drive_links(r["url"])[0], "download": drive_links(r["url"])[1]} for r in docs],
     }
     _cache.update(at=time.time(), data=data)
     return data
 
 
-def _inject(html: str) -> str:
-    payload = json.dumps(build_public_data(), ensure_ascii=False).replace("</", "<\\/").replace(" ", "\\u2028")
+def _inject(html: str, page=None) -> str:
+    payload = json.dumps(build_public_data(), ensure_ascii=False).replace("</", "<\\/")
+    payload = payload.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
     tag = "<script>window.__SAP_DATA=%s;</script>" % payload
+    if page is not None:
+        tag += "<script>window.__SAP_PAGE=%s;</script>" % json.dumps(page, ensure_ascii=False).replace("</", "<\\/")
     return re.sub(r"<head>", lambda m: "<head>" + tag, html, count=1, flags=re.I)
 
 
@@ -133,17 +173,70 @@ class EnquiryIn(BaseModel):
     city: str = Field("", max_length=120)
     message: str = Field("", max_length=4000)
     items: int = Field(0, ge=0, le=1000)
+    product_id: str = Field("", max_length=40)
+    website: str = Field("", max_length=200)  # honeypot: real visitors leave this empty
+
+
+TOPIC = {"product": "Product enquiry", "dist": "Distributorship", "visit": "Display centre visit"}
+
+
+def _notify(eid: int, row: dict, base: str):
+    """Email the SAP team about a new enquiry (in the background; failures never affect the visitor)."""
+    with db.conn() as c:
+        conf = mailer.effective(get_json(c, "email", defaults.EMAIL), _secret)
+    if not conf["host"] or not conf["to"]:
+        with db.conn() as c:
+            c.execute("UPDATE enquiries SET mail_status=%s WHERE id=%s", ("not configured", eid))
+        return
+    link = row["page_url"]
+    subject = "New enquiry: %s from %s" % (row["product_name"] or TOPIC.get(row["topic"], "Website"), row["name"])
+    lines = ["New enquiry from the SAP Hardware website", "", "Type: %s" % TOPIC.get(row["topic"], row["topic"])]
+    if row["product_name"]:
+        lines += ["Product: %s" % row["product_name"], "Product page: %s" % link]
+    lines += ["", "Name: %s" % row["name"], "Phone: %s" % row["phone"], "Email: %s" % (row["email"] or "-"),
+              "City: %s" % (row["city"] or "-"), "", "Message:", row["message"] or "-", "",
+              "View all enquiries: %s/admin#enquiries" % base]
+    esc = seo.esc
+    prod = (" — <a href='%s'>%s</a>" % (esc(link), esc(row["product_name"]))) if row["product_name"] else ""
+    html = ("<div style='font-family:system-ui,sans-serif;font-size:15px;color:#1C1C1C'>"
+            "<h2 style='margin:0 0 12px'>New website enquiry</h2><p><b>%s</b>%s</p>"
+            "<table cellpadding='6' style='border-collapse:collapse'>"
+            "<tr><td>Name</td><td><b>%s</b></td></tr><tr><td>Phone</td><td><a href='tel:%s'>%s</a></td></tr>"
+            "<tr><td>Email</td><td>%s</td></tr><tr><td>City</td><td>%s</td></tr></table>"
+            "<p style='white-space:pre-wrap;background:#f4f4f4;padding:12px;border-radius:6px'>%s</p>"
+            "<p><a href='%s/admin#enquiries'>Open in admin</a></p></div>") % (
+        esc(TOPIC.get(row["topic"], "")), prod, esc(row["name"]), esc(re.sub(r"[^\d+]", "", row["phone"])), esc(row["phone"]),
+        esc(row["email"] or "-"), esc(row["city"] or "-"), esc(row["message"] or "-"), esc(base))
+
+    def done(status):
+        with db.conn() as c:
+            c.execute("UPDATE enquiries SET mail_status=%s WHERE id=%s", (status, eid))
+    mailer.send_async(conf, subject, "\n".join(lines), html, row["email"], done)
 
 
 @app.post("/api/enquiries")
 def create_enquiry(e: EnquiryIn, request: Request):
     ip = request.client.host if request.client else ""
+    if e.website:  # a bot filled the hidden field: pretend success, store nothing
+        return {"ok": True}
     if not enquiry_throttle.hit(ip):
         raise HTTPException(429, "Too many requests. Please try again in a few minutes.")
-    topic = e.topic if e.topic in ("product", "dist", "visit") else "product"
+    topic = e.topic if e.topic in TOPIC else "product"
+    pid = pname = page = ""
+    data = build_public_data()
+    base = base_url(request, data["site"])
+    if e.product_id:
+        pr = next((x for x in data["products"] if x["id"] == e.product_id), None)
+        if pr:
+            pid, pname = pr["id"], "%s (%s)" % (pr["name"], pr["code"])
+            page = "%s/product.html?id=%s" % (base, pr["id"])
     with db.conn() as c:
-        c.execute("INSERT INTO enquiries(topic,name,phone,email,city,message,items_count,ip) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
-                  (topic, e.name.strip(), e.phone.strip(), e.email.strip(), e.city.strip(), e.message.strip(), e.items, ip))
+        r = c.execute("INSERT INTO enquiries(topic,name,phone,email,city,message,items_count,ip,product_id,product_name,page_url) "
+                      "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                      (topic, e.name.strip(), e.phone.strip(), e.email.strip(), e.city.strip(), e.message.strip(), e.items, ip,
+                       pid, pname, page)).fetchone()
+    _notify(r["id"], dict(topic=topic, name=e.name.strip(), phone=e.phone.strip(), email=e.email.strip(), city=e.city.strip(),
+                          message=e.message.strip(), product_name=pname, page_url=page), base)
     return {"ok": True}
 
 
@@ -395,6 +488,8 @@ class ProductIn(BaseModel):
     is_new: bool = False
     active: bool = True
     subs: List[List[str]] = []
+    seo_title: str = Field("", max_length=90)
+    seo_desc: str = Field("", max_length=200)
 
 
 @admin.get("/products")
@@ -416,7 +511,8 @@ def _product_values(c, b: ProductIn):
     subs = [[s[0].strip(), (s[1] if len(s) > 1 else "").strip()] for s in b.subs if s and s[0].strip()]
     return (b.name.strip(), b.collection_id, b.catalogue_key, b.pages.strip(), b.is_new,
             Jsonb(subs) if subs else None, b.material.strip(), [f for f in b.finishes if f in known],
-            asset_path(b.image), [asset_path(g) for g in b.gallery if g], b.description.strip(), b.active)
+            asset_path(b.image), [asset_path(g) for g in b.gallery if g], b.description.strip(), b.active,
+            b.seo_title.strip(), b.seo_desc.strip())
 
 
 @admin.post("/products")
@@ -431,7 +527,7 @@ def create_product(b: ProductIn, u=Depends(current_user)):
         pos = c.execute("SELECT coalesce(max(position),-1)+1 AS p FROM products").fetchone()["p"]
         c.execute(
             "INSERT INTO products(id,code,name,collection_id,catalogue_key,pages,is_new,subs,material,finishes,"
-            "image,gallery,description,active,position) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "image,gallery,description,active,seo_title,seo_desc,position) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (pid, code) + v + (pos,))
     invalidate()
     return {"id": pid}
@@ -443,7 +539,7 @@ def update_product(pid: str, b: ProductIn, u=Depends(current_user)):
         v = _product_values(c, b)
         r = c.execute(
             "UPDATE products SET code=%s,name=%s,collection_id=%s,catalogue_key=%s,pages=%s,is_new=%s,subs=%s,"
-            "material=%s,finishes=%s,image=%s,gallery=%s,description=%s,active=%s,updated_at=now() "
+            "material=%s,finishes=%s,image=%s,gallery=%s,description=%s,active=%s,seo_title=%s,seo_desc=%s,updated_at=now() "
             "WHERE id=%s RETURNING id",
             (b.code.strip() or pid.upper().replace("-", "·"),) + v + (pid,)).fetchone()
         if not r:
@@ -634,6 +730,7 @@ class Center(BaseModel):
     city: str = Field(..., max_length=60)
     addr: str = Field("", max_length=300)
     phone: str = Field("", max_length=40)
+    map: str = Field("", max_length=600)  # Google Maps link (optional)
 
 
 class Office(BaseModel):
@@ -641,6 +738,7 @@ class Office(BaseModel):
     addr: str = Field("", max_length=300)
     phones: List[str] = []
     email: str = Field("", max_length=160)
+    map: str = Field("", max_length=600)
 
 
 @admin.get("/contact-info")
@@ -657,8 +755,11 @@ class ContactIn(BaseModel):
 @admin.put("/contact-info")
 def save_contact(b: ContactIn, u=Depends(current_user)):
     with db.conn() as c:
-        db.set_setting(c, "centers", [x.model_dump() for x in b.centers])
-        db.set_setting(c, "offices", [x.model_dump() for x in b.offices])
+        centers, offices = [x.model_dump() for x in b.centers], [x.model_dump() for x in b.offices]
+        for x in centers + offices:
+            x["map"] = clean_url(x["map"], "Google Maps link")
+        db.set_setting(c, "centers", centers)
+        db.set_setting(c, "offices", offices)
     invalidate()
     return {"ok": True}
 
@@ -724,6 +825,213 @@ async def upload(file: UploadFile = File(...), u=Depends(current_user)):
     return {"path": "uploads/" + name, "width": im.width, "height": im.height}
 
 
+# --------------------------------------------------------------------------- site settings (SEO, founder, legal, email)
+
+class SiteIn(BaseModel):
+    description: str = Field("", max_length=400)
+    share_image: str = ""
+    ga4: str = Field("", max_length=20)
+    gsc_verification: str = Field("", max_length=120)
+    bing_verification: str = Field("", max_length=120)
+    site_url: str = Field("", max_length=200)
+
+
+@admin.get("/settings/site")
+def get_site(u=Depends(current_user)):
+    with db.conn() as c:
+        return get_json(c, "site", defaults.SITE)
+
+
+@admin.put("/settings/site")
+def save_site(b: SiteIn, u=Depends(current_user)):
+    ga = b.ga4.strip().upper()
+    if ga and not re.fullmatch(r"G-[A-Z0-9]{4,14}", ga):
+        raise HTTPException(400, "The Google Analytics ID looks like G-XXXXXXXXXX")
+    tok = re.compile(r"^[\w\-]{0,120}$")
+    for v in (b.gsc_verification.strip(), b.bing_verification.strip()):
+        if not tok.match(v):
+            raise HTTPException(400, "Paste only the verification code, not the whole tag")
+    with db.conn() as c:
+        db.set_setting(c, "site", {"description": b.description.strip() or defaults.SITE["description"],
+                                   "share_image": asset_path(b.share_image), "ga4": ga,
+                                   "gsc_verification": b.gsc_verification.strip(), "bing_verification": b.bing_verification.strip(),
+                                   "site_url": clean_url(b.site_url, "website address").rstrip("/")})
+    invalidate()
+    return {"ok": True}
+
+
+class Milestone(BaseModel):
+    year: str = Field("", max_length=12)
+    label: str = Field("", max_length=140)
+
+
+class Value(BaseModel):
+    title: str = Field("", max_length=40)
+    text: str = Field("", max_length=200)
+
+
+class FounderIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=80)
+    role: str = Field("", max_length=80)
+    photo: str = ""
+    headline: str = Field("", max_length=120)
+    intro: str = Field("", max_length=600)
+    story: List[str] = []
+    vision: str = Field("", max_length=600)
+    values: List[Value] = []
+    milestones: List[Milestone] = []
+
+
+@admin.get("/settings/founder")
+def get_founder(u=Depends(current_user)):
+    with db.conn() as c:
+        return get_json(c, "founder", defaults.FOUNDER)
+
+
+@admin.put("/settings/founder")
+def save_founder(b: FounderIn, u=Depends(current_user)):
+    d = b.model_dump()
+    d["photo"] = asset_path(b.photo)
+    d["story"] = [t.strip() for t in b.story if t.strip()][:12]
+    d["values"] = [v for v in d["values"] if v["title"].strip()][:8]
+    d["milestones"] = [m for m in d["milestones"] if m["label"].strip()][:10]
+    with db.conn() as c:
+        db.set_setting(c, "founder", d)
+    invalidate()
+    return {"ok": True}
+
+
+class LegalDoc(BaseModel):
+    title: str = Field(..., min_length=1, max_length=80)
+    updated: str = Field("", max_length=40)
+    body: str = Field("", max_length=30000)
+
+
+class LegalIn(BaseModel):
+    privacy: LegalDoc
+    cookies: LegalDoc
+    terms: LegalDoc
+
+
+@admin.get("/settings/legal")
+def get_legal(u=Depends(current_user)):
+    with db.conn() as c:
+        return {k: {**defaults.LEGAL[k], **((db.get_setting(c, "legal", {}) or {}).get(k, {}))} for k in defaults.LEGAL}
+
+
+@admin.put("/settings/legal")
+def save_legal(b: LegalIn, u=Depends(current_user)):
+    with db.conn() as c:
+        db.set_setting(c, "legal", b.model_dump())
+    invalidate()
+    return {"ok": True}
+
+
+class EmailIn(BaseModel):
+    to: List[str] = []
+    host: str = Field("", max_length=160)
+    port: int = Field(587, ge=1, le=65535)
+    user: str = Field("", max_length=160)
+    password: str = Field("", max_length=200)  # blank = keep the saved one
+    from_addr: str = Field("", max_length=160)
+    from_name: str = Field("", max_length=80)
+
+
+def _email_public(c):
+    cfg = get_json(c, "email", defaults.EMAIL)
+    env = bool(os.environ.get("SMTP_HOST"))
+    return {"to": cfg.get("to", []), "host": cfg.get("host", ""), "port": cfg.get("port", 587), "user": cfg.get("user", ""),
+            "from_addr": cfg.get("from_addr", ""), "from_name": cfg.get("from_name", ""),
+            "has_password": bool(cfg.get("password_enc")), "from_env": env}
+
+
+@admin.get("/settings/email")
+def get_email(u=Depends(current_user)):
+    with db.conn() as c:
+        return _email_public(c)
+
+
+@admin.put("/settings/email")
+def save_email(b: EmailIn, u=Depends(current_user)):
+    to = [t.strip() for t in b.to if t.strip()]
+    for t in to:
+        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", t):
+            raise HTTPException(400, "“%s” is not a valid email address" % t)
+    with db.conn() as c:
+        old = get_json(c, "email", defaults.EMAIL)
+        enc = mailer.encrypt(_secret, b.password) if b.password else old.get("password_enc", "")
+        db.set_setting(c, "email", {"to": to, "host": b.host.strip(), "port": b.port, "user": b.user.strip(),
+                                    "from_addr": b.from_addr.strip(), "from_name": b.from_name.strip() or "SAP Hardware website",
+                                    "password_enc": enc})
+    return {"ok": True}
+
+
+@admin.post("/settings/email/test")
+def test_email(u=Depends(current_user)):
+    with db.conn() as c:
+        conf = mailer.effective(get_json(c, "email", defaults.EMAIL), _secret)
+    try:
+        mailer.send(conf, "SAP Hardware website: test email",
+                    "This is a test message from the SAP Hardware website admin.\n\nIf you can read this, enquiry emails will arrive here.")
+    except Exception as e:
+        raise HTTPException(400, "Could not send: %s" % str(e)[:300])
+    return {"ok": True, "sent_to": conf["to"]}
+
+
+# --------------------------------------------------------------------------- downloads (PDF links with cover images)
+
+class DocumentIn(BaseModel):
+    title: str = Field(..., min_length=1, max_length=120)
+    note: str = Field("", max_length=200)
+    url: str = Field(..., min_length=8, max_length=800)
+    cover: str = ""
+    catalogue_key: str = Field("", max_length=10)
+    active: bool = True
+
+
+@admin.get("/documents")
+def list_documents(u=Depends(current_user)):
+    with db.conn() as c:
+        return c.execute("SELECT * FROM documents ORDER BY position, id").fetchall()
+
+
+@admin.post("/documents")
+def create_document(b: DocumentIn, u=Depends(current_user)):
+    with db.conn() as c:
+        pos = c.execute("SELECT coalesce(max(position),-1)+1 AS p FROM documents").fetchone()["p"]
+        r = c.execute("INSERT INTO documents(title,note,url,cover,catalogue_key,position,active) VALUES(%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                      (b.title.strip(), b.note.strip(), clean_url(b.url, "PDF link"), asset_path(b.cover), b.catalogue_key, pos, b.active)).fetchone()
+    invalidate()
+    return {"id": r["id"]}
+
+
+@admin.put("/documents/{did}")
+def update_document(did: int, b: DocumentIn, u=Depends(current_user)):
+    with db.conn() as c:
+        r = c.execute("UPDATE documents SET title=%s,note=%s,url=%s,cover=%s,catalogue_key=%s,active=%s WHERE id=%s RETURNING id",
+                      (b.title.strip(), b.note.strip(), clean_url(b.url, "PDF link"), asset_path(b.cover), b.catalogue_key, b.active, did)).fetchone()
+        if not r:
+            raise HTTPException(404, "Download not found")
+    invalidate()
+    return {"ok": True}
+
+
+@admin.delete("/documents/{did}")
+def delete_document(did: int, u=Depends(current_user)):
+    with db.conn() as c:
+        c.execute("DELETE FROM documents WHERE id=%s", (did,))
+    invalidate()
+    return {"ok": True}
+
+
+@admin.post("/documents/reorder")
+def reorder_documents(b: IntIdsIn, u=Depends(current_user)):
+    with db.conn() as c:
+        reorder(c, "documents", b.ids)
+    invalidate()
+    return {"ok": True}
+
+
 app.include_router(admin)
 
 # --------------------------------------------------------------------------- admin UI + site
@@ -761,26 +1069,97 @@ def healthz():
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots(request: Request):
-    base = str(request.base_url).rstrip("/")
-    return PlainTextResponse("User-agent: *\nAllow: /\nDisallow: /admin\n\nSitemap: %s/sitemap.xml\n" % base)
+    base = base_url(request, build_public_data()["site"])
+    return PlainTextResponse("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: %s/sitemap.xml\n" % base)
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap(request: Request):
-    base = str(request.base_url).rstrip("/")
     d = build_public_data()
-    urls = [("/", "1.0"), ("/products.html", "0.8"), ("/about.html", "0.6"), ("/contact.html", "0.6")]
+    base = base_url(request, d["site"])
+    urls = [("/", "1.0"), ("/products.html", "0.9"), ("/about.html", "0.6"), ("/contact.html", "0.6"),
+            ("/privacy-policy", "0.2"), ("/cookie-policy", "0.2"), ("/terms", "0.2")]
     urls += [("/products.html?c=" + c["id"], "0.7") for c in d["collections"]]
-    urls += [("/product.html?id=" + p["id"], "0.6") for p in d["products"]]
-    body = "".join("<url><loc>%s%s</loc><priority>%s</priority></url>" % (base, u.replace("&", "&amp;"), pr)
-                   for u, pr in urls)
-    return Response('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-                    + body + "</urlset>", media_type="application/xml")
+    urls += [("/product.html?id=" + p["id"], "0.8") for p in d["products"]]
+    imgs = {p["id"]: p["img"] for p in d["products"]}
+    esc = seo.esc
+    body = ""
+    for u, pr in urls:
+        im = ""
+        if u.startswith("/product.html?id="):
+            src = imgs.get(u.split("=", 1)[1])
+            if src:
+                im = "<image:image><image:loc>%s/%s</image:loc></image:image>" % (base, esc(src.lstrip("/")))
+        body += "<url><loc>%s%s</loc><priority>%s</priority>%s</url>" % (base, esc(u), pr, im)
+    return Response('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+                    'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' + body + "</urlset>", media_type="application/xml")
 
 
-def _html(p: Path, status: int = 200):
-    return HTMLResponse(_inject(p.read_text(encoding="utf-8")), status_code=status,
-                        headers={"Cache-Control": "no-cache", **SEC_HEADERS})
+def _render(p: Path, request: Request, status: int = 200, path: Optional[str] = None):
+    """Serve an HTML page with live data injected and its SEO tags/structured data/crawler content filled in."""
+    text = p.read_text(encoding="utf-8")
+    data = dict(build_public_data())
+    base = base_url(request, data["site"])
+    path = path or request.url.path
+    q = dict(request.query_params)
+    route = seo.norm_path(path)
+    comps = row = None
+    page = None
+    if route == "/product" and q.get("id"):
+        with db.conn() as c:
+            row = c.execute("SELECT seo_title, seo_desc FROM products WHERE id=%s", (q["id"],)).fetchone()
+            comps = c.execute("SELECT name, code FROM components WHERE product_id=%s AND active ORDER BY position, id", (q["id"],)).fetchall()
+    if route in seo.LEGAL_ROUTES:
+        key = seo.LEGAL_ROUTES[route]
+        with db.conn() as c:
+            custom = (db.get_setting(c, "legal", {}) or {})
+        data["legal"] = {k: {**defaults.LEGAL[k], **custom.get(k, {})} for k in defaults.LEGAL}
+        page = {"key": key, **data["legal"][key]}
+    m = seo.page_meta(path, q, data, base, comps, row)
+    if status == 200 and route == "/product" and m["robots"].startswith("noindex"):
+        status = 404
+    text = _inject(text, page)
+    text = seo.apply(text, m, data["site"], seo.nav_links(base))
+    return HTMLResponse(text, status_code=status, headers={"Cache-Control": "no-cache", **SEC_HEADERS})
+
+
+_og_cache = {}
+
+
+def _og(kind: str, key: str):
+    d = build_public_data()
+    if kind == "p":
+        pr = next((x for x in d["products"] if x["id"] == key), None)
+        if not pr:
+            raise HTTPException(404)
+        col = next((c for c in d["collections"] if c["id"] == pr["col"]), {})
+        args = (pr["name"], col.get("name", "Catalogue"), "%s · %d components" % (pr["code"], pr["n"]) if pr["n"] else pr["code"], pr["img"])
+    elif kind == "c":
+        col = next((c for c in d["collections"] if c["id"] == key), None)
+        if not col:
+            raise HTTPException(404)
+        first = next((x for x in d["products"] if x["col"] == key), None)
+        args = (col["name"], "Collection", "%d series" % len([x for x in d["products"] if x["col"] == key]), first["img"] if first else col["scene"])
+    else:
+        hero = d["slides"][0]["img"] if d["slides"] else ""
+        args = (seo.NAME, seo.TAGLINE, "%d series · 3,000+ products" % len(d["products"]), hero)
+    if args not in _og_cache:
+        if len(_og_cache) > 200:
+            _og_cache.clear()
+        _og_cache[args] = seo.share_image(SITE_DIR, *args)
+    return Response(_og_cache[args], media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/og/home.jpg", include_in_schema=False)
+def og_home():
+    return _og("h", "")
+
+
+@app.get("/og/{kind}/{key}.jpg", include_in_schema=False)
+def og_item(kind: str, key: str):
+    if kind not in ("p", "c"):
+        raise HTTPException(404)
+    return _og(kind, key)
 
 
 @app.get("/uploads/{name}", include_in_schema=False)
@@ -792,17 +1171,21 @@ def uploaded(name: str):
 
 
 @app.get("/{path:path}", include_in_schema=False)
-def site(path: str):
+def site(path: str, request: Request):
     if path.startswith("api/"):
         raise HTTPException(404)
     rel = path.strip("/") or "index.html"
+    if path.strip("/") == "index.html":  # the home page lives at "/"; send the duplicate URL there
+        return RedirectResponse("/", status_code=301)
+    if seo.norm_path(path) in seo.LEGAL_ROUTES:
+        return _render(SITE_DIR / "legal.html", request)
     p = _safe(SITE_DIR, rel)
     if not p and "." not in rel:
         p = _safe(SITE_DIR, rel + ".html")  # clean URLs: /about -> about.html
     if not p:
         nf = SITE_DIR / "404.html"
-        return _html(nf, 404) if nf.exists() else PlainTextResponse("Not found", status_code=404)
+        return _render(nf, request, 404, "/__not_found__") if nf.exists() else PlainTextResponse("Not found", status_code=404)
     if p.suffix == ".html":
-        return _html(p)
+        return _render(p, request)
     ttl = "public, max-age=31536000" if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".svg") else "no-cache"
     return FileResponse(p, headers={"Cache-Control": ttl, **SEC_HEADERS})

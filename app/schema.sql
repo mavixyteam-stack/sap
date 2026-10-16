@@ -101,3 +101,25 @@ CREATE TABLE IF NOT EXISTS components (
   active     BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE INDEX IF NOT EXISTS components_product_idx ON components(product_id, position);
+
+-- Enquiries now record which product the visitor asked about.
+ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS product_id   TEXT NOT NULL DEFAULT '';
+ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS product_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS page_url     TEXT NOT NULL DEFAULT '';
+ALTER TABLE enquiries ADD COLUMN IF NOT EXISTS mail_status  TEXT NOT NULL DEFAULT '';
+
+-- Optional per-product search/share overrides (blank = generated automatically).
+ALTER TABLE products ADD COLUMN IF NOT EXISTS seo_title TEXT NOT NULL DEFAULT '';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS seo_desc  TEXT NOT NULL DEFAULT '';
+
+-- Downloadable PDFs: the file lives on Google Drive, we only store the link + a cover image.
+CREATE TABLE IF NOT EXISTS documents (
+  id       SERIAL PRIMARY KEY,
+  title    TEXT NOT NULL,
+  note     TEXT NOT NULL DEFAULT '',
+  url      TEXT NOT NULL,
+  cover    TEXT NOT NULL DEFAULT '',
+  position INT  NOT NULL DEFAULT 0,
+  active   BOOLEAN NOT NULL DEFAULT TRUE
+);
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS catalogue_key TEXT NOT NULL DEFAULT '';
